@@ -23,7 +23,7 @@ export default function RootLayout({
         
         <footer className="bg-white border-t py-10 mt-12">
           <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} Mickey Blog. สร้างสรรค์ด้วย Next.js และ Tailwind CSS
+            © {new Date().getFullYear()} Mickey Hub. สร้างสรรค์ด้วย Next.js และ Tailwind CSS
           </div>
         </footer>
       </body>

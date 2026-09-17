@@ -28,8 +28,7 @@ export default function Editor({ value, onChange }: EditorProps) {
     content: value,
     editorProps: {
       attributes: {
-        class:
-          "prose prose-zinc max-w-none min-h-[320px] p-6 focus:outline-none bg-white text-zinc-900 leading-relaxed",
+        class: "prose prose-zinc max-w-none min-h-[320px] p-6 focus:outline-none bg-white text-zinc-900 leading-relaxed",
       },
     },
     onUpdate: ({ editor }) => {
@@ -38,7 +37,8 @@ export default function Editor({ value, onChange }: EditorProps) {
     immediatelyRender: false,
   });
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // เติม e: any ตรงนี้
+  const handleImageUpload = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file || !editor) return;
 
@@ -59,20 +59,21 @@ export default function Editor({ value, onChange }: EditorProps) {
         body: formData,
       });
 
-      const data = await res.json();
+      // เติม : any ตรงนี้
+      const data: any = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || "อัปโหลดล้มเหลว");
       }
 
-      // แทรกภาพลงตรงเคอร์เซอร์ปัจจุบัน
       editor.chain().focus().setImage({ src: data.url }).run();
       toast.success("แทรกรูปภาพเรียบร้อย", { id: toastId });
     } catch (error: any) {
       toast.error(error.message || "เกิดข้อผิดพลาดในการอัปโหลด", { id: toastId });
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      // เติม as any ตรงนี้
+      if (fileInputRef.current) (fileInputRef.current as any).value = "";
     }
   };
 
@@ -80,7 +81,6 @@ export default function Editor({ value, onChange }: EditorProps) {
 
   return (
     <div className="border border-zinc-200 rounded-3xl overflow-hidden bg-white shadow-sm focus-within:border-zinc-900 transition-colors">
-      {/* Hidden File Input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -89,27 +89,18 @@ export default function Editor({ value, onChange }: EditorProps) {
         className="hidden"
       />
 
-      {/* Toolbar */}
       <div className="flex items-center gap-1.5 p-3 border-b border-zinc-100 bg-zinc-50/70 backdrop-blur-sm flex-wrap text-sm">
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-            editor.isActive("bold")
-              ? "bg-zinc-900 text-white shadow-sm"
-              : "text-zinc-600 hover:bg-zinc-200/60"
-          }`}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all ${editor.isActive("bold") ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-200"}`}
         >
           B
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-3 py-1.5 rounded-lg italic transition-all ${
-            editor.isActive("italic")
-              ? "bg-zinc-900 text-white shadow-sm"
-              : "text-zinc-600 hover:bg-zinc-200/60"
-          }`}
+          className={`px-3 py-1.5 rounded-lg italic transition-all ${editor.isActive("italic") ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-200"}`}
         >
           I
         </button>
@@ -117,22 +108,14 @@ export default function Editor({ value, onChange }: EditorProps) {
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-            editor.isActive("heading", { level: 2 })
-              ? "bg-zinc-900 text-white shadow-sm"
-              : "text-zinc-600 hover:bg-zinc-200/60"
-          }`}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all ${editor.isActive("heading", { level: 2 }) ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-200"}`}
         >
           H2
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-            editor.isActive("heading", { level: 3 })
-              ? "bg-zinc-900 text-white shadow-sm"
-              : "text-zinc-600 hover:bg-zinc-200/60"
-          }`}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${editor.isActive("heading", { level: 3 }) ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-200"}`}
         >
           H3
         </button>
@@ -140,22 +123,18 @@ export default function Editor({ value, onChange }: EditorProps) {
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-3 py-1.5 rounded-lg transition-all ${
-            editor.isActive("bulletList")
-              ? "bg-zinc-900 text-white shadow-sm"
-              : "text-zinc-600 hover:bg-zinc-200/60"
-          }`}
+          className={`px-3 py-1.5 rounded-lg transition-all ${editor.isActive("bulletList") ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-200"}`}
         >
           Bullet List
         </button>
 
         <div className="w-[1px] h-5 bg-zinc-200 mx-1" />
 
-        {/* ปุ่มแทรกรูปภาพ */}
         <button
           type="button"
           disabled={isUploading}
-          onClick={() => fileInputRef.current?.click()}
+          // เติม as any ตรงนี้
+          onClick={() => (fileInputRef.current as any)?.click()}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-zinc-700 bg-white border border-zinc-200 hover:border-zinc-400 font-medium transition-all shadow-sm active:scale-95 disabled:opacity-50"
         >
           <span>📷</span>
@@ -163,7 +142,6 @@ export default function Editor({ value, onChange }: EditorProps) {
         </button>
       </div>
 
-      {/* Editor Content Area */}
       <EditorContent editor={editor} />
     </div>
   );
