@@ -4,18 +4,18 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 interface ImageUploadProps {
-  value: string; // URL รูปภาพปัจจุบัน
-  onChange: (url: string) => void; // ฟังก์ชันอัปเดต URL กลับไปที่ฟอร์ม
+  value: string;
+  onChange: (url: string) => void;
 }
 
 export default function ImageUpload({ value, onChange }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // เติม e: any ตรงนี้
+  const handleUpload = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // เช็คขนาดไฟล์ (ไม่เกิน 5MB)
     if (file.size > 5 * 1024 * 1024) {
       return toast.error("ขนาดรูปภาพต้องไม่เกิน 5MB");
     }
@@ -32,10 +32,11 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
         body: formData,
       });
 
-      const data = await res.json();
+      // เติม : any ตรงนี้
+      const data: any = await res.json();
 
       if (res.ok) {
-        onChange(data.url); // ส่ง URL กลับไปให้ฟอร์มหลัก
+        onChange(data.url);
         toast.success("อัปโหลดสำเร็จ!", { id: loadingToast });
       } else {
         toast.error(data.error || "เกิดข้อผิดพลาด", { id: loadingToast });
@@ -49,7 +50,6 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* พื้นที่แสดงรูปภาพ */}
       {value ? (
         <div className="relative aspect-video w-full max-w-md rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 shadow-sm">
           <img src={value} alt="Uploaded preview" className="w-full h-full object-cover" />

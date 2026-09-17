@@ -15,7 +15,6 @@ export default function NewPostPage() {
     title: "", excerpt: "", coverImage: "", category: "", status: "DRAFT", content: ""
   });
 
-  // โหลดหมวดหมู่มาใส่ Dropdown
   useEffect(() => {
     fetch("/api/categories")
       .then(res => res.json())
@@ -28,8 +27,6 @@ export default function NewPostPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    
-    // โชว์ Toast แบบโหลดรอไว้ก่อน
     const loadingToast = toast.loading("กำลังสร้างบทความ...");
 
     try {
@@ -41,10 +38,11 @@ export default function NewPostPage() {
 
       if (res.ok) {
         toast.success("สร้างบทความสำเร็จ!", { id: loadingToast });
-        router.push("/admin/posts"); // กลับไปหน้ารายการบทความ
+        router.push("/admin/posts");
         router.refresh();
       } else {
-        const errorData = await res.json();
+        // เติม : any ตรงนี้
+        const errorData: any = await res.json();
         toast.error(errorData.error || "เกิดข้อผิดพลาดในการบันทึก", { id: loadingToast });
       }
     } catch (error) {
@@ -56,23 +54,17 @@ export default function NewPostPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* ส่วนหัว */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-gray-900">เขียนบทความใหม่</h1>
           <p className="text-sm text-gray-500 mt-2">สร้างสรรค์เนื้อหาและแบ่งปันเรื่องราวของคุณ</p>
         </div>
-        <Link 
-          href="/admin/posts" 
-          className="text-gray-500 hover:text-gray-900 font-medium px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl transition"
-        >
+        <Link href="/admin/posts" className="text-gray-500 hover:text-gray-900 font-medium px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl transition">
           ยกเลิก
         </Link>
       </div>
       
-      {/* ฟอร์มสร้างบทความ */}
       <form onSubmit={handleSubmit} className="bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 space-y-8">
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">หัวข้อบทความ</label>
@@ -81,13 +73,13 @@ export default function NewPostPage() {
               placeholder="ตั้งชื่อบทความให้น่าสนใจ..."
               className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none"
               value={formData.title}
-              onChange={e => setFormData({...formData, title: e.target.value})} 
+              // เติม e: any ตรงนี้และจุดอื่นๆ
+              onChange={(e: any) => setFormData({...formData, title: e.target.value})} 
             />
           </div>
           
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">ภาพปกบทความ</label>
-            {/* เรียกใช้ Component อัปโหลดรูปภาพที่ทำไว้ */}
             <ImageUpload 
               value={formData.coverImage} 
               onChange={(url) => setFormData({...formData, coverImage: url})} 
@@ -101,7 +93,7 @@ export default function NewPostPage() {
             <select 
               className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none appearance-none"
               value={formData.status}
-              onChange={e => setFormData({...formData, status: e.target.value})}
+              onChange={(e: any) => setFormData({...formData, status: e.target.value})}
             >
               <option value="DRAFT">ฉบับร่าง (Draft)</option>
               <option value="PUBLISHED">เผยแพร่ (Published)</option>
@@ -115,7 +107,7 @@ export default function NewPostPage() {
               placeholder="สรุปเนื้อหาสั้นๆ 1-2 ประโยค..."
               className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none"
               value={formData.excerpt}
-              onChange={e => setFormData({...formData, excerpt: e.target.value})} 
+              onChange={(e: any) => setFormData({...formData, excerpt: e.target.value})} 
             />
           </div>
         </div>

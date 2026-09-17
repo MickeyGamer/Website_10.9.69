@@ -31,7 +31,8 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
   try {
     const { id } = await params;
-    const body = await req.json();
+    // ใส่ : any ตรงนี้
+    const body: any = await req.json();
 
     await connectDB();
     const updatedProduct = await Product.findByIdAndUpdate(

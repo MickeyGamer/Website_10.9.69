@@ -26,7 +26,8 @@ export default function EditProductPage() {
     const fetchProduct = async () => {
       try {
         const res = await fetch(`/api/products/${productId}`);
-        const data = await res.json();
+        // เติม : any ตรงนี้
+        const data: any = await res.json();
 
         if (res.ok && !data.error) {
           setFormData({
@@ -71,7 +72,8 @@ export default function EditProductPage() {
         router.push("/admin/products");
         router.refresh();
       } else {
-        const errorData = await res.json();
+        // เติม : any ตรงนี้
+        const errorData: any = await res.json();
         toast.error(errorData.error || "เกิดข้อผิดพลาด", { id: toastId });
       }
     } catch {
@@ -97,10 +99,7 @@ export default function EditProductPage() {
           <h1 className="text-3xl font-black tracking-tight text-zinc-900">แก้ไขสินค้า</h1>
           <p className="text-sm text-zinc-500 mt-2">ปรับปรุงรายละเอียด ราคา และสต็อกสินค้า</p>
         </div>
-        <Link
-          href="/admin/products"
-          className="text-zinc-500 hover:text-zinc-900 font-medium px-4 py-2 bg-zinc-50 hover:bg-zinc-100 rounded-xl transition"
-        >
+        <Link href="/admin/products" className="text-zinc-500 hover:text-zinc-900 font-medium px-4 py-2 bg-zinc-50 hover:bg-zinc-100 rounded-xl transition">
           ยกเลิก
         </Link>
       </div>
@@ -114,16 +113,13 @@ export default function EditProductPage() {
               type="text"
               className="w-full px-4 py-3 bg-zinc-50/50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              // เติม e: any
+              onChange={(e: any) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
-
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-zinc-700">ภาพสินค้า</label>
-            <ImageUpload
-              value={formData.imageUrl}
-              onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-            />
+            <ImageUpload value={formData.imageUrl} onChange={(url) => setFormData({ ...formData, imageUrl: url })} />
           </div>
         </div>
 
@@ -136,10 +132,9 @@ export default function EditProductPage() {
               min="0"
               className="w-full px-4 py-3 bg-zinc-50/50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none"
               value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              onChange={(e: any) => setFormData({ ...formData, price: e.target.value })}
             />
           </div>
-
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-zinc-700">จำนวนสต็อก</label>
             <input
@@ -148,19 +143,18 @@ export default function EditProductPage() {
               min="0"
               className="w-full px-4 py-3 bg-zinc-50/50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none"
               value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+              onChange={(e: any) => setFormData({ ...formData, stock: e.target.value })}
             />
           </div>
-
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-zinc-700">สถานะการแสดงผล</label>
             <select
               className="w-full px-4 py-3 bg-zinc-50/50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none"
               value={formData.isActive ? "true" : "false"}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.value === "true" })}
+              onChange={(e: any) => setFormData({ ...formData, isActive: e.target.value === "true" })}
             >
               <option value="true">เปิดขาย</option>
-              <option value="false">ปิดชั่วคราว (ซ่อนจากร้าน)</option>
+              <option value="false">ปิดชั่วคราว</option>
             </select>
           </div>
         </div>
@@ -171,16 +165,12 @@ export default function EditProductPage() {
             rows={4}
             className="w-full p-4 bg-zinc-50/50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all outline-none leading-relaxed"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e: any) => setFormData({ ...formData, description: e.target.value })}
           />
         </div>
 
         <div className="flex justify-end pt-4 border-t border-zinc-100">
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-3.5 rounded-xl font-medium transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-zinc-900/20"
-          >
+          <button type="submit" disabled={saving} className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-3.5 rounded-xl font-medium transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-zinc-900/20">
             {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
           </button>
         </div>
