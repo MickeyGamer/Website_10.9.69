@@ -9,17 +9,20 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.31.3",
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
     "bcryptjs": "^3.0.3",
-    "mongoose": "^9.9.5",
+    "cloudinary": "^2.11.0",
+    "mongoose": "^9.10.1",
     "next": "16.3.4",
     "next-auth": "^5.0.0-beta.32",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-hot-toast": "^2.6.0",
+    "react-hot-toast": "^2.6.1",
     "slugify": "^1.6.9",
-    "tiptap": "^1.32.2"
+    "tiptap": "^1.32.2",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
