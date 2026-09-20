@@ -1,11 +1,12 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs"; // 1. นำเข้า bcryptjs มาใช้เทียบรหัสผ่าน
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
-  pages: { signIn: "/login" }, // หน้าเพจ Login ที่เราจะสร้างทีหลัง
+  pages: { signIn: "/login" }, 
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -17,7 +18,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await User.findOne({ email: credentials.email }).select("+password");
         if (!user?.password) return null;
 
-        const isPasswordMatch = await user.comparePassword(credentials.password as string);
+        // 2. ใช้ bcrypt.compare เทียบรหัสผ่านโดยตรง แทนการใช้ user.comparePassword()
+        const isPasswordMatch = await bcrypt.compare(
+          credentials.password as string, 
+          user.password
+        );
+        
         if (!isPasswordMatch) return null;
 
         return {

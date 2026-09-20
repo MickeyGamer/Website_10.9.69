@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast"; // 1. นำเข้า toast
 
 export default function AdminPostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -14,10 +15,10 @@ export default function AdminPostsPage() {
   const loadPosts = async () => {
     try {
       const res = await fetch("/api/posts");
-      const data = await res.json();
+      const data: any = await res.json(); // เติม : any ดักไว้
       if (Array.isArray(data)) setPosts(data);
     } catch (error) {
-      console.error("Failed to load posts", error);
+      toast.error("โหลดข้อมูลบทความล้มเหลว"); // เปลี่ยนจาก console.error
     } finally {
       setLoading(false);
     }
@@ -30,6 +31,7 @@ export default function AdminPostsPage() {
   const handleDelete = async () => {
     if (!postToDelete) return;
     setIsDeleting(true);
+    const toastId = toast.loading("กำลังลบบทความ..."); // โชว์โหลดตอนกำลังลบ
 
     try {
       const res = await fetch(`/api/posts/${postToDelete._id}`, {
@@ -39,11 +41,12 @@ export default function AdminPostsPage() {
       if (res.ok) {
         setPosts(posts.filter((p) => p._id !== postToDelete._id));
         setPostToDelete(null); // ปิด Popup
+        toast.success("ลบบทความเรียบร้อย!", { id: toastId }); // แจ้งเตือนสำเร็จ
       } else {
-        alert("ไม่สามารถลบบทความได้");
+        toast.error("ไม่สามารถลบบทความได้", { id: toastId }); // แจ้งเตือนล้มเหลว
       }
     } catch (error) {
-      console.error(error);
+      toast.error("ระบบขัดข้อง กรุณาลองใหม่", { id: toastId });
     } finally {
       setIsDeleting(false);
     }

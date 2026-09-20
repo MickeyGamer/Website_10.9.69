@@ -11,20 +11,37 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+    <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">
       {/* แถบเมนูด้านข้าง (Sidebar) */}
       <aside className="w-full md:w-64 shrink-0">
-        <div className="bg-white rounded-2xl shadow-sm border p-4 sticky top-24">
-          <h2 className="font-bold text-lg mb-4 px-4 text-gray-800">เมนูจัดการ</h2>
-          <nav className="flex flex-col space-y-1">
-            <Link href="/admin" className="px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition">
-              ภาพรวม (Dashboard)
+        <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100 p-6 sticky top-24">
+          <h2 className="font-black text-lg mb-6 px-2 text-zinc-900 tracking-tight">ระบบหลังบ้าน</h2>
+          <nav className="flex flex-col space-y-1.5">
+            <Link href="/admin" className="px-4 py-3 rounded-2xl hover:bg-zinc-50 text-zinc-600 hover:text-zinc-950 font-semibold transition-all flex items-center gap-3">
+              <span>📊</span>
+              <span>ภาพรวม (Dashboard)</span>
             </Link>
-            <Link href="/admin/posts" className="px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition">
-              จัดการบทความ
+            
+            <div className="h-px bg-zinc-100 my-4 mx-4"></div>
+            
+            <Link href="/admin/posts" className="px-4 py-3 rounded-2xl hover:bg-zinc-50 text-zinc-600 hover:text-zinc-950 font-semibold transition-all flex items-center gap-3">
+              <span>📝</span>
+              <span>จัดการบทความ</span>
             </Link>
-            <Link href="/admin/categories" className="px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition">
-              จัดการหมวดหมู่
+            <Link href="/admin/categories" className="px-4 py-3 rounded-2xl hover:bg-zinc-50 text-zinc-600 hover:text-zinc-950 font-semibold transition-all flex items-center gap-3">
+              <span>🏷️</span>
+              <span>จัดการหมวดหมู่</span>
+            </Link>
+            
+            <div className="h-px bg-zinc-100 my-4 mx-4"></div>
+            
+            <Link href="/admin/products" className="px-4 py-3 rounded-2xl hover:bg-zinc-50 text-zinc-600 hover:text-zinc-950 font-semibold transition-all flex items-center gap-3">
+              <span>🛍️</span>
+              <span>สินค้าในร้าน</span>
+            </Link>
+            <Link href="/admin/orders" className="px-4 py-3 rounded-2xl hover:bg-zinc-50 text-zinc-600 hover:text-zinc-950 font-semibold transition-all flex items-center gap-3">
+              <span>📦</span>
+              <span>คำสั่งซื้อ (Orders)</span>
             </Link>
           </nav>
         </div>
@@ -32,7 +49,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       {/* พื้นที่แสดงเนื้อหา */}
       <main className="flex-grow">
-        <div className="bg-white rounded-2xl shadow-sm border p-6 md:p-8">
+        {/* ลบกล่องสีขาวหุ้มเนื้อหาออก เพื่อให้แต่ละหน้า (page) จัดการความกว้างและพื้นหลังของตัวเองได้อิสระขึ้น */}
+        <div className="min-h-[60vh]">
           {children}
         </div>
       </main>
