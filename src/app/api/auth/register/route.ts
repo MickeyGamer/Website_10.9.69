@@ -19,6 +19,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "อีเมลนี้ถูกใช้งานแล้ว" }, { status: 400 });
     }
 
+    // [เพิ่มใหม่] 1.5 เช็คชื่อผู้ใช้ซ้ำ
+    const existingName = await User.findOne({ name });
+    if (existingName) {
+      return NextResponse.json({ error: "ชื่อนามแฝงนี้มีคนใช้แล้ว กรุณาตั้งชื่ออื่นครับ" }, { status: 400 });
+    }
+
     // 2. เข้ารหัสผ่าน (Hashing) เพื่อความปลอดภัยขั้นสุด
     const hashedPassword = await bcrypt.hash(password, 10);
 

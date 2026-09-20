@@ -1,74 +1,104 @@
-import { connectDB } from "@/lib/mongodb";
-import { Post } from "@/models/Post";
-import { User } from "@/models/User";
-import { Category } from "@/models/Category";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
-// บังคับให้โหลดข้อมูลใหม่เสมอ (ไม่จำ Cache)
-export const dynamic = "force-dynamic";
-
-export default async function AdminDashboard() {
-  await connectDB();
+export default function LoginPage() {
+  const router = useRouter();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // นับข้อมูลจากฐานข้อมูลจริงๆ (ทำขนานกันเพื่อความรวดเร็ว)
-  const [postCount, userCount, categoryCount, latestPosts] = await Promise.all([
-    Post.countDocuments(),
-    User.countDocuments(),
-    Category.countDocuments(),
-    Post.find().sort({ createdAt: -1 }).limit(3).lean() // ดึงบทความล่าสุด 3 อัน
-  ]);
+  // เพิ่ม State สำหรับเก็บข้อความ Error
+  const [errorMsg, setErrorMsg] = useState("");
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg(""); // ล้างข้อความ Error เก่าออกก่อน
+
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (res?.error) {
+      // ถ้าเข้าสู่ระบบไม่ผ่าน ให้โชว์ข้อความสีแดง
+      setErrorMsg("อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+      setIsLoading(false);
+    } else {
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 2000);
+    }
+  };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-black text-gray-900 tracking-tight">ภาพรวมระบบ (Dashboard)</h1>
-        <p className="text-sm text-gray-500 mt-1">สรุปข้อมูลทั้งหมดภายในบล็อกของคุณ</p>
-      </div>
-      
-      {/* การ์ดสถิติจริง */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-md transition">
-          <h3 className="text-gray-500 font-medium text-sm mb-2">บทความทั้งหมด</h3>
-          <p className="text-4xl font-black text-zinc-900">{postCount}</p>
-        </div>
-        <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-md transition">
-          <h3 className="text-gray-500 font-medium text-sm mb-2">หมวดหมู่ทั้งหมด</h3>
-          <p className="text-4xl font-black text-zinc-900">{categoryCount}</p>
-        </div>
-        <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-md transition">
-          <h3 className="text-gray-500 font-medium text-sm mb-2">จำนวนผู้ใช้งาน</h3>
-          <p className="text-4xl font-black text-zinc-900">{userCount}</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-4 relative">
+      <Link href="/" className="absolute top-8 left-8 text-sm font-bold text-zinc-500 hover:text-zinc-900 transition flex items-center gap-2">
+        <span>←</span> กลับหน้าแรก MickeyHub
+      </Link>
 
-      {/* Widget บทความล่าสุด */}
-      <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] p-6 md:p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-lg text-gray-900">บทความล่าสุด</h3>
-          <Link href="/admin/posts" className="text-sm font-medium text-blue-600 hover:underline">
-            ดูทั้งหมด
-          </Link>
-        </div>
+      <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgb(0,0,0,0.03)] border border-zinc-100 w-full max-w-md">
         
-        {latestPosts.length === 0 ? (
-          <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-500 text-sm">
-            ยังไม่มีบทความในระบบ
+        {isSuccess ? (
+          <div className="text-center py-8 animate-fadeIn">
+            <svg className="checkmark mb-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+              <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+              <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+            <h3 className="text-xl font-black text-zinc-900 mb-2">กำลังนำท่านเข้าสู่ระบบ...</h3>
+            <p className="text-zinc-500 text-sm">ยินดีต้อนรับกลับสู่ MickeyHub</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {latestPosts.map((post: any) => (
-              <div key={post._id.toString()} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                <div>
-                  <p className="font-bold text-sm text-gray-900 line-clamp-1">{post.title}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(post.createdAt).toLocaleDateString('th-TH')} • สถานะ: {post.status}
-                  </p>
+          <div className="animate-fadeIn">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-black text-zinc-900 tracking-tight">เข้าสู่ระบบ MickeyHub</h1>
+              <p className="text-zinc-500 text-sm mt-2">จัดการบล็อกและบทความของคุณ</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              
+              {/* กล่องแสดง Error สีแดง (จะโชว์ก็ต่อเมื่อมี Error) */}
+              {errorMsg && (
+                <div className="bg-red-50 text-red-600 text-sm font-semibold p-4 rounded-2xl border border-red-100 text-center animate-fadeIn">
+                  ⚠️ {errorMsg}
                 </div>
-                <Link href={`/admin/posts/${post._id}/edit`} className="text-sm font-semibold text-gray-600 hover:text-zinc-900 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 transition">
-                  แก้ไข
-                </Link>
+              )}
+
+              <div>
+                <input 
+                  type="email" required placeholder="อีเมลของคุณ" 
+                  value={email} onChange={(e: any) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-zinc-50/50 border border-zinc-200 rounded-2xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
+                />
               </div>
-            ))}
+              <div>
+                <input 
+                  type="password" required placeholder="รหัสผ่าน" 
+                  value={password} onChange={(e: any) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-zinc-50/50 border border-zinc-200 rounded-2xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
+                />
+              </div>
+              
+              <button 
+                type="submit" disabled={isLoading}
+                className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-4 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-zinc-900/10 mt-2"
+              >
+                {isLoading ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบ"}
+              </button>
+            </form>
+
+            <p className="text-center text-sm text-zinc-500 mt-8">
+              ยังไม่มีบัญชีใช่ไหม? <Link href="/register" className="text-zinc-900 font-bold hover:underline">สมัครสมาชิก</Link>
+            </p>
           </div>
         )}
       </div>

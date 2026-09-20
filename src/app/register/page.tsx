@@ -10,11 +10,15 @@ export default function RegisterPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
+  // เพิ่ม State สำหรับเก็บข้อความ Error แบบหน้า Login
+  const [errorMsg, setErrorMsg] = useState("");
+  
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMsg(""); // ล้างข้อความ Error เก่าออกก่อน
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -25,22 +29,32 @@ export default function RegisterPage() {
 
       const data: any = await res.json();
 
+      // เช็คว่า API ตอบกลับมาว่าผ่าน (Status 200-299)
       if (res.ok) {
         setIsSuccess(true);
-        setTimeout(() => router.push("/login"), 2000); // 2 วิเด้งไปหน้าล็อกอิน
+        toast.success("สมัครสมาชิกสำเร็จ!");
+        setTimeout(() => router.push("/login"), 2000);
       } else {
-        toast.error(data.error || "สมัครสมาชิกไม่สำเร็จ");
+        // ถ้าไม่ผ่าน (เช่น Error 400 อีเมลซ้ำ) ให้ดึงข้อความจาก API มาโชว์
+        setErrorMsg(data.error || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+        toast.error("การสมัครล้มเหลว");
       }
     } catch (error) {
-      toast.error("ระบบขัดข้อง กรุณาลองใหม่");
+      setErrorMsg("ระบบเชื่อมต่อขัดข้อง กรุณาลองใหม่อีกครั้ง");
+      toast.error("เกิดข้อผิดพลาดของเซิร์ฟเวอร์");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
-      <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100 w-full max-w-md">
+    <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-4 relative">
+      {/* ปุ่มกลับหน้าแรกมุมซ้ายบน */}
+      <Link href="/" className="absolute top-8 left-8 text-sm font-bold text-zinc-500 hover:text-zinc-900 transition flex items-center gap-2">
+        <span>←</span> กลับหน้าแรก MickeyHub
+      </Link>
+
+      <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgb(0,0,0,0.03)] border border-zinc-100 w-full max-w-md">
         
         {isSuccess ? (
           <div className="text-center py-8 animate-fadeIn">
@@ -58,28 +72,36 @@ export default function RegisterPage() {
               <p className="text-zinc-500 text-sm mt-2">เข้าร่วมคอมมูนิตี้และร้านค้าของเรา</p>
             </div>
 
-            <form onSubmit={handleRegister} className="space-y-5">
+            <form onSubmit={handleRegister} className="space-y-4">
+              
+              {/* กล่องแสดง Error สีแดง (โชว์เตือนถ้าอีเมลซ้ำ) */}
+              {errorMsg && (
+                <div className="bg-red-50 text-red-600 text-sm font-semibold p-4 rounded-2xl border border-red-100 text-center animate-fadeIn">
+                  ⚠️ {errorMsg}
+                </div>
+              )}
+
               <input 
                 type="text" required placeholder="ชื่อของคุณ" 
                 value={formData.name} onChange={(e: any) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
+                className="w-full px-4 py-3.5 bg-zinc-50/50 border border-zinc-200 rounded-2xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
               />
               <input 
                 type="email" required placeholder="อีเมล" 
                 value={formData.email} onChange={(e: any) => setFormData({...formData, email: e.target.value})}
-                className="w-full px-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
+                className="w-full px-4 py-3.5 bg-zinc-50/50 border border-zinc-200 rounded-2xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
               />
               <input 
-                type="password" required placeholder="รหัสผ่าน" minLength={6}
+                type="password" required placeholder="รหัสผ่าน (ขั้นต่ำ 6 ตัวอักษร)" minLength={6}
                 value={formData.password} onChange={(e: any) => setFormData({...formData, password: e.target.value})}
-                className="w-full px-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
+                className="w-full px-4 py-3.5 bg-zinc-50/50 border border-zinc-200 rounded-2xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
               />
               
               <button 
                 type="submit" disabled={isLoading}
-                className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-70 mt-2"
+                className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-4 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-zinc-900/10 mt-2"
               >
-                {isLoading ? "กำลังสมัครสมาชิก..." : "สมัครสมาชิก"}
+                {isLoading ? "กำลังตรวจสอบ..." : "สมัครสมาชิก"}
               </button>
             </form>
 
