@@ -22,12 +22,14 @@ export default async function Navbar() {
             >
               บทความ
             </Link>
+
             <Link 
               href="/board" 
               className="hover:text-zinc-900 transition-colors"
             >
               เว็บบอร์ด
             </Link>
+
             <Link 
               href="/shop" 
               className="hover:text-zinc-900 transition-colors flex items-center gap-1.5"
@@ -37,6 +39,14 @@ export default async function Navbar() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
               </span>
+            </Link>
+
+            {/* เมนูทีมงาน เพิ่มเข้ามาเท่านั้น */}
+            <Link 
+              href="/team" 
+              className="hover:text-zinc-900 transition-colors"
+            >
+              ทีมงาน
             </Link>
           </div>
         </div>
