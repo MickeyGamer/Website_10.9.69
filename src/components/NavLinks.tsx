@@ -1,35 +1,102 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image"; // ดึง Image component เข้ามาใช้งาน
+import { auth } from "@/auth";
 
-export default function NavLinks() {
-  const pathname = usePathname();
-
-  const menuClass = (path: string) =>
-    `rounded-lg px-3 py-2 transition-colors ${
-      pathname === path
-        ? "bg-blue-100 text-blue-700"
-        : "text-gray-500 hover:text-zinc-900"
-    }`;
+export default async function Navbar() {
+  const session = await auth();
 
   return (
-    <div className="hidden items-center space-x-4 text-sm font-medium md:flex">
-      <Link href="/blog" className={menuClass("/blog")}>
-        บทความ
-      </Link>
+   <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50 transition-all">
+      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        
+        {/* โลโก้เว็บไซต์ */}
+        <div className="flex items-center space-x-6">
+          <Link href="/" className="flex items-center gap-2.5 text-xl font-black text-zinc-900 tracking-tight hover:opacity-80 transition">
+            {/* ดึงรูปภาพ m.png */}
+            <Image 
+              src="/m.png" 
+              alt="Logo" 
+              width={32} 
+              height={32} 
+              className="h-8 w-auto object-contain"
+              priority
+            />
+            <span>Mickey<span className="text-blue-600">Hub.</span></span>
+          </Link> 
 
-      <Link href="/board" className={menuClass("/board")}>
-        เว็บบอร์ด
-      </Link>
+          {/* เมนูหลักนำทาง */}
+          <div className="hidden md:flex items-center space-x-1 text-sm font-medium text-gray-600">
+            <Link 
+              href="/blog" 
+              className="px-3.5 py-2 rounded-xl hover:bg-blue-600 hover:text-white active:bg-blue-700 transition-all"
+            >
+              บทความ
+            </Link>
 
-      <Link href="/shop" className={menuClass("/shop")}>
-        ร้านค้า
-      </Link>
+            <Link 
+              href="/board" 
+              className="px-3.5 py-2 rounded-xl hover:bg-blue-600 hover:text-white active:bg-blue-700 transition-all"
+            >
+              เว็บบอร์ด
+            </Link>
 
-      <Link href="/team" className={menuClass("/team")}>
-        ทีมงาน
-      </Link>
-    </div>
+            <Link 
+              href="/shop" 
+              className="px-3.5 py-2 rounded-xl hover:bg-blue-600 hover:text-white active:bg-blue-700 transition-all flex items-center gap-1.5 group"
+            >
+              <span>ร้านค้า</span>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+            </Link>
+
+            {/* เมนูทีมงาน */}
+            <Link 
+              href="/team" 
+              className="px-3.5 py-2 rounded-xl hover:bg-blue-600 hover:text-white active:bg-blue-700 transition-all"
+            >
+              ทีมงาน
+            </Link>
+          </div>
+        </div>
+
+        {/* ส่วนจัดการผู้ใช้ / ล็อกอิน */}
+        <div className="flex items-center space-x-4 text-sm font-medium">
+          {session?.user ? (
+            <div className="flex items-center space-x-4">
+              <span className="hidden sm:inline-block text-gray-600">
+                {session.user.name || "สมาชิก"}
+              </span>
+
+              {/* แสดงเฉพาะผู้ใช้ที่มี Role ADMIN */}
+              {(session.user as any)?.role === "ADMIN" && (
+                <Link 
+                  href="/admin" 
+                  className="text-xs font-semibold px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
+                >
+                  หลังบ้าน (Admin)
+                </Link>
+              )}
+
+              <Link 
+                href="/api/auth/signout" 
+                className="text-xs font-medium text-gray-500 hover:text-red-600 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-200 transition"
+              >
+                ออกจากระบบ
+              </Link>
+            </div>
+          ) : (
+            <Link 
+              href="/login" 
+              className="bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-medium px-4 py-2 rounded-xl transition shadow-sm active:scale-[0.98]"
+            >
+              เข้าสู่ระบบ
+            </Link>
+          )}
+        </div>
+
+      </div>
+    </nav>
   );
 }

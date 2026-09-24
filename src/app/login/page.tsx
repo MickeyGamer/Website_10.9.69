@@ -74,7 +74,15 @@ export default function LoginPage() {
         ) : (
           <div className="animate-fadeIn">
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-black text-zinc-900 tracking-tight">เข้าสู่ระบบ MickeyHub</h1>
+              {/* 🎯 จัดวางโลโก้ไว้ข้างหน้าข้อความ เข้าสู่ระบบ MickeyHub */}
+              <h1 className="text-2xl font-black text-zinc-900 tracking-tight inline-flex items-center justify-center gap-2">
+                <img
+                  src="/team/images/mk.png" // 👈 เปลี่ยนเป็น path ไฟล์โลโก้ของคุณตรงนี้
+                  alt="Logo"
+                  className="h-8 md:h-10 w-auto object-contain"
+                />
+                <span>เข้าสู่ระบบ MickeyHub</span>
+              </h1>
               <p className="text-zinc-500 text-sm mt-2">จัดการบล็อกและบทความของคุณ</p>
             </div>
 

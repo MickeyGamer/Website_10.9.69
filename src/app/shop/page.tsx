@@ -47,7 +47,14 @@ export default function ShopPage() {
       {/* ส่วนหัวร้านค้า */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-6">
         <div>
-          <h1 className="text-4xl font-black text-zinc-900 tracking-tight">ร้านค้า (Shop)</h1>
+          <h1 className="text-4xl font-black text-zinc-900 tracking-tight inline-flex items-center gap-3">
+            <span>ร้านค้า (Shop)</span>
+            <img
+              src="/team/images/sk.png"
+              alt="Shop Logo"
+              className="h-16 md:h-20 w-auto object-contain"
+            />
+          </h1>
           <p className="text-zinc-500 mt-2">สินค้าพรีเมียมคัดสรรพิเศษสำหรับคุณ</p>
         </div>
         

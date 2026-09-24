@@ -17,8 +17,13 @@ export default async function BlogPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-16">
       <header className="mb-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
-          บทความทั้งหมด
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4 inline-flex items-center justify-center gap-3">
+          <span>บทความทั้งหมด</span>
+          <img
+            src="/book.png"
+            alt="Logo Book"
+            className="h-16 md:h-20 w-auto object-contain"
+          />
         </h1>
         <p className="text-lg text-gray-500 max-w-2xl mx-auto">
           อัปเดตความรู้ เทคนิคใหม่ๆ และเรื่องราวที่น่าสนใจที่เราคัดสรรมาเพื่อคุณ
