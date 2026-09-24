@@ -1,18 +1,28 @@
 import Link from "next/link";
+import Image from "next/image"; // ดึง Image component เข้ามาใช้งาน
 import { auth } from "@/auth";
 
 export default async function Navbar() {
   const session = await auth();
 
   return (
-    <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50 transition-all">
+   <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50 transition-all">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         
         {/* โลโก้เว็บไซต์ */}
         <div className="flex items-center space-x-8">
-          <Link href="/" className="text-xl font-black text-zinc-900 tracking-tight hover:opacity-80 transition">
-            Mickey<span className="text-blue-600">Hub.</span>
-          </Link>
+          <Link href="/" className="flex items-center gap-2.5 text-xl font-black text-zinc-900 tracking-tight hover:opacity-80 transition">
+            {/* ดึงรูปภาพ m.png */}
+            <Image 
+              src="/m.png" 
+              alt="Logo" 
+              width={32} 
+              height={32} 
+              className="h-8 w-auto object-contain"
+              priority
+            />
+            <span>Mickey<span className="text-blue-600">Hub.</span></span>
+          </Link> 
 
           {/* เมนูหลักนำทาง */}
           <div className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-500">
@@ -41,7 +51,7 @@ export default async function Navbar() {
               </span>
             </Link>
 
-            {/* เมนูทีมงาน เพิ่มเข้ามาเท่านั้น */}
+            {/* เมนูทีมงาน */}
             <Link 
               href="/team" 
               className="hover:text-zinc-900 transition-colors"

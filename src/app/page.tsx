@@ -27,7 +27,6 @@ export default async function HomePage() {
     .limit(5)
     .lean();
 
-  // ชุดสโลแกนใหม่สุดเท่ของคุณ (พิมพ์วนลูป)
   const slogans = [
     "ทุกอย่างครบจบในที่เดียว",
     "สติมาโปรแกรมเกิด สติเตลิด Error กระจาย",
@@ -43,7 +42,6 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-zinc-50 to-white -z-10" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl -z-10" />
         
-        {/* เปลี่ยนป้ายเป็น MickeyHub */}
         <span className="px-4 py-1.5 rounded-full bg-zinc-100 text-zinc-600 text-xs font-bold uppercase tracking-widest mb-6 border border-zinc-200 shadow-sm">
           Welcome to MickeyHub
         </span>
@@ -67,24 +65,47 @@ export default async function HomePage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 space-y-32">
-        {/* 🛍️ Section 1: Latest Products */}
+        
+        {/* 🛍️ Section 1: สินค้ามาใหม่ (แถบสีดำ) */}
         <section>
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight">สินค้ามาใหม่</h2>
-              <p className="text-zinc-500 mt-2">ไอเทมพรีเมียมล่าสุดจากร้านค้าของเรา</p>
+          <div className="bg-zinc-900 text-white rounded-3xl p-6 md:p-8 mb-8 shadow-xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">สินค้ามาใหม่</h2>
+                  {/* 🎯 เติมไฟล์โลโก้/ไอคอนของคุณที่ src ตรงนี้ */}
+                  <img
+                    src="/team/images/sk.png"
+                    alt="Logo SK"
+                    className="h-10 md:h-14 w-auto object-contain"
+                  />
+                </div>
+                <p className="text-zinc-400 text-sm mt-1">ไอเทมพรีเมียมล่าสุดจากร้านค้าของเรา</p>
+              </div>
+
+              <Link 
+                href="/shop" 
+                className="text-sm font-bold text-white hover:text-blue-400 transition flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 px-5 py-2.5 rounded-xl border border-zinc-700 shrink-0"
+              >
+                ดูทั้งหมด <span>→</span>
+              </Link>
             </div>
-            <Link href="/shop" className="text-sm font-bold text-zinc-900 hover:text-blue-600 transition flex items-center gap-1">
-              ดูทั้งหมด <span>→</span>
-            </Link>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {latestProducts.map((product: any) => (
-              <Link href="/shop" key={product._id.toString()} className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 border border-zinc-100">
+              <Link 
+                href="/shop" 
+                key={product._id.toString()} 
+                className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 border border-zinc-100"
+              >
                 <div className="aspect-[4/5] bg-zinc-50 relative overflow-hidden flex items-center justify-center">
                   {product.images?.[0] ? (
-                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
+                    <img 
+                      src={product.images[0]} 
+                      alt={product.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-700" 
+                    />
                   ) : (
                     <span className="text-zinc-400 font-medium">ไม่มีรูปภาพ</span>
                   )}
@@ -98,16 +119,30 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 📝 Section 2: Latest Blog Posts */}
+        {/* 📝 Section 2: บทความล่าสุด (ปรับเป็นแถบสีดำแบบเดียวกันแล้ว) */}
         <section>
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight">บทความล่าสุด</h2>
-              <p className="text-zinc-500 mt-2">อัปเดตเรื่องราวและความรู้ใหม่ๆ</p>
+          <div className="bg-zinc-900 text-white rounded-3xl p-6 md:p-8 mb-8 shadow-xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">บทความล่าสุด</h2>
+                  {/* 🎯 เติมไฟล์โลโก้/ไอคอนของบทความที่ src ตรงนี้ */}
+                  <img
+                    src="/book.png"
+                    alt="Logo Book"
+                    className="h-10 md:h-14 w-auto object-contain"
+                  />
+                </div>
+                <p className="text-zinc-400 text-sm mt-1">อัปเดตเรื่องราวและความรู้ใหม่ๆ</p>
+              </div>
+
+              <Link 
+                href="/blog" 
+                className="text-sm font-bold text-white hover:text-blue-400 transition flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 px-5 py-2.5 rounded-xl border border-zinc-700 shrink-0"
+              >
+                อ่านทั้งหมด <span>→</span>
+              </Link>
             </div>
-            <Link href="/blog" className="text-sm font-bold text-zinc-900 hover:text-blue-600 transition flex items-center gap-1">
-              อ่านทั้งหมด <span>→</span>
-            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -132,16 +167,30 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 💬 Section 3: Active Threads */}
+        {/* 💬 Section 3: คอมมูนิตี้ (ปรับเป็นแถบสีดำแบบเดียวกันแล้ว) */}
         <section>
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-            <div>
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight">คอมมูนิตี้</h2>
-              <p className="text-zinc-500 mt-2">กระทู้พูดคุยล่าสุดจากสมาชิก</p>
+          <div className="bg-zinc-900 text-white rounded-3xl p-6 md:p-8 mb-8 shadow-xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">คอมมูนิตี้</h2>
+                  {/* 🎯 เติมไฟล์โลโก้/ไอคอนของคอมมูนิตี้ที่ src ตรงนี้ */}
+                  <img
+                    src="/c.png"
+                    alt="Logo Community"
+                    className="h-10 md:h-14 w-auto object-contain"
+                  />
+                </div>
+                <p className="text-zinc-400 text-sm mt-1">กระทู้พูดคุยล่าสุดจากสมาชิก</p>
+              </div>
+
+              <Link 
+                href="/board/new" 
+                className="text-sm font-bold text-white hover:text-blue-400 transition flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 px-5 py-2.5 rounded-xl border border-zinc-700 shrink-0"
+              >
+                + ตั้งกระทู้ใหม่
+              </Link>
             </div>
-            <Link href="/board/new" className="bg-zinc-900 hover:bg-zinc-800 text-white font-medium px-5 py-2.5 rounded-xl transition text-sm shadow-sm">
-              + ตั้งกระทู้ใหม่
-            </Link>
           </div>
 
           <div className="bg-white border border-zinc-100 rounded-3xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] divide-y divide-zinc-100">
@@ -172,6 +221,7 @@ export default async function HomePage() {
             </Link>
           </div>
         </section>
+
       </div>
     </div>
   );
