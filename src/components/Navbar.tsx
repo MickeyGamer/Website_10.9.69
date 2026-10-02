@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { auth } from "@/auth";
 
 export default async function Navbar() {

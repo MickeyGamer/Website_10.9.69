@@ -1,104 +1,226 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify";
+
 import { connectDB } from "@/lib/mongodb";
 import { Thread } from "@/models/Thread";
 import { Comment } from "@/models/Comment";
-import Link from "next/link";
+
 import CommentBox from "./CommentBox";
 
 export const dynamic = "force-dynamic";
 
 interface ThreadPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-export default async function ThreadPage({ params }: ThreadPageProps) {
+interface AuthorData {
+  name?: string;
+}
+
+interface ThreadData {
+  _id: {
+    toString(): string;
+  };
+  title: string;
+  content?: string;
+  author?: AuthorData | null;
+  createdAt: Date | string;
+  views?: number;
+}
+
+interface CommentData {
+  _id: {
+    toString(): string;
+  };
+  content?: string;
+  author?: AuthorData | null;
+  createdAt: Date | string;
+}
+
+export default async function ThreadPage({
+  params,
+}: ThreadPageProps) {
   const { id } = await params;
+
   await connectDB();
 
-  // 1. ดึงข้อมูลกระทู้ พร้อมบวกยอดคนดู (views) อัตโนมัติ
-  const thread = await Thread.findByIdAndUpdate(
-    id, 
-    { $inc: { views: 1 } }, 
-    { new: true }
-  ).populate("author", "name").lean();
-
-  if (!thread) notFound();
-
-  // 2. ดึงคอมเมนต์ทั้งหมดของกระทู้นี้ เรียงตามเวลา
-  const comments = await Comment.find({ thread: id })
+  // ================================
+  // ดึงข้อมูลกระทู้ + เพิ่ม Views
+  // ================================
+  const thread = (await Thread.findByIdAndUpdate(
+    id,
+    {
+      $inc: {
+        views: 1,
+      },
+    },
+    {
+      new: true,
+    }
+  )
     .populate("author", "name")
-    .sort({ createdAt: 1 })
-    .lean();
+    .lean()) as unknown as ThreadData | null;
 
-  const typedThread = thread as any;
+  // ไม่พบกระทู้
+  if (!thread) {
+    notFound();
+  }
+
+  // ================================
+  // ดึงความคิดเห็น
+  // ================================
+  const comments = (await Comment.find({
+    thread: id,
+  })
+    .populate("author", "name")
+    .sort({
+      createdAt: 1,
+    })
+    .lean()) as unknown as CommentData[];
+
+  // ================================
+  // ป้องกัน XSS ของกระทู้
+  // ================================
+  const safeThreadContent = DOMPurify.sanitize(
+    thread.content || ""
+  );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      {/* ปุ่มย้อนกลับ */}
-      <Link href="/board" className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 mb-8 transition">
-        ← กลับไปหน้าเว็บบอร์ด
-      </Link>
+    <main className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-4xl px-4 py-12">
 
-      {/* เนื้อหากระทู้หลัก */}
-      <div className="bg-white rounded-3xl p-8 md:p-10 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-zinc-100 mb-10">
-        <h1 className="text-2xl md:text-4xl font-black text-zinc-900 mb-6 leading-tight">
-          {typedThread.title}
-        </h1>
-        
-        <div className="flex items-center gap-3 mb-8 pb-8 border-b border-zinc-100">
-          <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center text-white font-bold shadow-sm">
-            {typedThread.author?.name?.charAt(0) || "U"}
-          </div>
-          <div>
-            <p className="font-bold text-zinc-900 text-sm">{typedThread.author?.name || "สมาชิกทั่วไป"}</p>
-            <div className="flex items-center gap-2 text-xs text-zinc-500 mt-0.5">
-              <span>{new Date(typedThread.createdAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}</span>
-              <span>•</span>
-              <span>👁️ {typedThread.views} ครั้ง</span>
+        {/* Back Button */}
+        <Link
+          href="/board"
+          className="mb-8 inline-flex items-center text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
+        >
+          ← กลับไปหน้าเว็บบอร์ด
+        </Link>
+
+        {/* Thread */}
+        <article className="mb-10 rounded-3xl border border-zinc-100 bg-white p-8 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] md:p-10">
+
+          {/* Title */}
+          <h1 className="mb-6 text-2xl font-black leading-tight text-zinc-900 md:text-4xl">
+            {thread.title}
+          </h1>
+
+          {/* Author / Date / Views */}
+          <div className="mb-8 flex items-center gap-3 border-b border-zinc-100 pb-8">
+
+            {/* Avatar */}
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-900 font-bold text-white shadow-sm">
+              {thread.author?.name?.charAt(0) || "U"}
             </div>
-          </div>
-        </div>
 
-        {/* เรนเดอร์ HTML ด้วย Tailwind Prose */}
-        <div 
-          className="prose prose-zinc prose-lg max-w-none prose-img:rounded-2xl"
-          dangerouslySetInnerHTML={{ __html: typedThread.content }}
-        />
-      </div>
+            <div>
+              <p className="text-sm font-bold text-zinc-900">
+                {thread.author?.name || "สมาชิกทั่วไป"}
+              </p>
 
-      {/* พื้นที่คอมเมนต์ */}
-      <div className="space-y-6 mb-12">
-        <h3 className="text-lg font-black text-zinc-900 px-2">ความคิดเห็น ({comments.length})</h3>
-        
-        {comments.map((comment: any, index: number) => (
-          <div key={comment._id.toString()} className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex gap-4">
-            <div className="w-10 h-10 shrink-0 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-600 font-bold border border-zinc-200">
-              {comment.author?.name?.charAt(0) || "?"}
-            </div>
-            <div className="flex-grow">
-              <div className="flex items-baseline justify-between mb-2">
-                <span className="font-bold text-zinc-900 text-sm">{comment.author?.name || "สมาชิก"}</span>
-                <span className="text-xs text-zinc-400 font-medium">
-                  ความคิดเห็นที่ {index + 1} • {new Date(comment.createdAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                <span>
+                  {new Date(thread.createdAt).toLocaleString(
+                    "th-TH",
+                    {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }
+                  )}
+                </span>
+
+                <span>•</span>
+
+                <span>
+                  👁️ {thread.views || 0} ครั้ง
                 </span>
               </div>
-              <div 
-                className="prose prose-sm max-w-none text-zinc-700"
-                dangerouslySetInnerHTML={{ __html: comment.content }}
-              />
             </div>
           </div>
-        ))}
 
-        {comments.length === 0 && (
-          <div className="text-center py-12 bg-zinc-50/50 rounded-3xl border border-dashed border-zinc-200">
-            <p className="text-zinc-500 font-medium">ยังไม่มีความคิดเห็น เป็นคนแรกที่คอมเมนต์สิ!</p>
-          </div>
-        )}
+          {/* Thread Content */}
+          <div
+            className="
+              prose
+              prose-zinc
+              prose-lg
+              max-w-none
+              prose-headings:font-bold
+              prose-p:leading-8
+              prose-img:rounded-2xl
+              prose-a:text-blue-600
+            "
+            dangerouslySetInnerHTML={{
+              __html: safeThreadContent,
+            }}
+          />
+        </article>
+
+        {/* Comments */}
+        <section className="mb-12 space-y-6">
+          <h2 className="px-2 text-lg font-black text-zinc-900">
+            ความคิดเห็น ({comments.length})
+          </h2>
+
+          {comments.length > 0 ? (
+            comments.map((comment, index) => (
+              <article
+                key={comment._id.toString()}
+                className="flex gap-4 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm"
+              >
+                {/* Avatar */}
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 font-bold text-zinc-600">
+                  {comment.author?.name?.charAt(0) || "?"}
+                </div>
+
+                <div className="min-w-0 flex-1">
+
+                  {/* Comment Header */}
+                  <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                    <span className="text-sm font-bold text-zinc-900">
+                      {comment.author?.name || "สมาชิก"}
+                    </span>
+
+                    <span className="text-xs font-medium text-zinc-400">
+                      ความคิดเห็นที่ {index + 1}
+                      {" • "}
+                      {new Date(
+                        comment.createdAt
+                      ).toLocaleString("th-TH", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </span>
+                  </div>
+
+                  {/* Comment Content */}
+                  <div
+                    className="prose prose-sm max-w-none text-zinc-700"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(
+                        comment.content || ""
+                      ),
+                    }}
+                  />
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/50 py-12 text-center">
+              <p className="font-medium text-zinc-500">
+                ยังไม่มีความคิดเห็น เป็นคนแรกที่คอมเมนต์สิ!
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* Comment Box */}
+        <CommentBox threadId={id} />
+
       </div>
-
-      {/* กล่องพิมพ์คอมเมนต์ (Client Component) */}
-      <CommentBox threadId={id} />
-    </div>
+    </main>
   );
 }

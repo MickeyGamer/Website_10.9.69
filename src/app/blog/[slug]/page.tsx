@@ -1,79 +1,202 @@
 import { notFound } from "next/navigation";
-import { connectDB } from "@/lib/mongodb";
-import { Post } from "@/models/Post";
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify";
 
-interface BlogPostProps {
-  params: Promise<{ slug: string }>;
-}
+import { connectDB } from "@/lib/mongodb";
+import { Article } from "@/models/Article";
+import ShareArticle from "@/components/articles/ShareArticle";
 
-// ต้องมี export default ตรงนี้เสมอ
-export default async function BlogPost({ params }: BlogPostProps) {
+type ArticlePageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
+export async function generateMetadata({
+  params,
+}: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
+
   await connectDB();
-  
-  const post = await Post.findOne({ slug, status: "PUBLISHED" })
-    .populate("author", "name")
-    .populate("category", "name")
+
+  const article = await Article.findOne({
+    slug,
+    status: "PUBLISHED",
+  })
+    .select("title excerpt coverImage")
     .lean();
 
-  if (!post) {
+  if (!article) {
+    return {
+      title: "ไม่พบบทความ",
+    };
+  }
+
+  return {
+    title: article.title,
+    description:
+      article.excerpt ||
+      `อ่านบทความ ${article.title} ได้ที่ MickeyHub`,
+  };
+}
+
+export default async function ArticleDetailPage({
+  params,
+}: ArticlePageProps) {
+  const { slug } = await params;
+
+  await connectDB();
+
+  const article = await Article.findOne({
+    slug,
+    status: "PUBLISHED",
+  })
+    .populate("author", "name")
+    .lean();
+
+  if (!article) {
     notFound();
   }
 
-  const typedPost = post as any;
+  const author =
+    typeof article.author === "object" && article.author
+      ? (article.author as { name?: string })
+      : null;
+
+  const publishedDate = article.publishedAt
+    ? new Date(article.publishedAt).toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : new Date(article.createdAt).toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+  // ป้องกัน XSS
+  // เนื้อหาจาก Editor เป็น HTML จึงต้อง sanitize
+  // ก่อนนำไปแสดงด้วย dangerouslySetInnerHTML
+  const safeContent = DOMPurify.sanitize(article.content || "");
 
   return (
-    <article className="max-w-3xl mx-auto px-4 py-12 md:py-20">
-      
-      <header className="mb-12 text-center">
-        {typedPost.category && (
-          <span className="text-blue-600 font-bold uppercase tracking-widest text-xs mb-4 inline-block bg-blue-50 px-3 py-1 rounded-full">
-            {typedPost.category.name}
-          </span>
-        )}
-        <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight">
-          {typedPost.title}
-        </h1>
-        <div className="flex items-center justify-center space-x-4 text-gray-500 text-sm font-medium">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold mr-2 shadow-sm">
-              {typedPost.author?.name?.charAt(0) || "A"}
-            </div>
-            <span>{typedPost.author?.name || "ทีมงาน"}</span>
-          </div>
-          <span>•</span>
-          <time>
-            {new Date(typedPost.createdAt).toLocaleDateString("th-TH", {
-              year: "numeric", month: "long", day: "numeric",
-            })}
-          </time>
-          <span>•</span>
-          <span>อ่าน {typedPost.readingTime || 1} นาที</span>
-        </div>
-      </header>
+    <main className="min-h-screen bg-gray-50">
+      <article className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
 
-      {typedPost.coverImage && (
-        <div className="aspect-[21/9] w-full rounded-[2rem] mb-12 overflow-hidden shadow-lg border border-gray-100 relative">
-          <img 
-            src={typedPost.coverImage} 
-            alt={typedPost.title} 
-            className="w-full h-full object-cover"
+        {/* กลับหน้าบทความ */}
+        <div className="mb-6">
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-blue-600"
+          >
+            ← กลับไปหน้าบทความ
+          </Link>
+        </div>
+
+        {/* Header */}
+        <header className="mb-8">
+
+          {/* Category */}
+          {article.category && (
+            <div className="mb-3">
+              <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+                {article.category}
+              </span>
+            </div>
+          )}
+
+          {/* Title */}
+          <h1 className="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+            {article.title}
+          </h1>
+
+          {/* Excerpt */}
+          {article.excerpt && (
+            <p className="mt-4 text-lg leading-8 text-gray-600">
+              {article.excerpt}
+            </p>
+          )}
+
+          {/* Author / Date */}
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+            <span>
+              ผู้เขียน:{" "}
+              <span className="font-medium text-gray-700">
+                {author?.name || "ไม่ระบุชื่อ"}
+              </span>
+            </span>
+
+            <span aria-hidden>•</span>
+
+            <time
+              dateTime={String(
+                article.publishedAt || article.createdAt
+              )}
+            >
+              {publishedDate}
+            </time>
+          </div>
+        </header>
+
+        {/* Cover Image */}
+        {article.coverImage && (
+          <div className="relative mb-8 aspect-video overflow-hidden rounded-2xl bg-gray-200 shadow-sm">
+            <Image
+              src={article.coverImage}
+              alt={article.title}
+              fill
+              priority
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 896px"
+            />
+          </div>
+        )}
+
+        {/* Share */}
+        <div className="mb-8 flex justify-end">
+          <ShareArticle
+            title={article.title}
+            slug={article.slug}
           />
         </div>
-      )}
 
-      <div 
-        className="prose prose-lg prose-blue prose-slate max-w-none mx-auto leading-relaxed prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-2xl"
-        dangerouslySetInnerHTML={{ __html: typedPost.content }}
-      />
-      
-      <div className="mt-16 pt-8 border-t border-gray-100 text-center">
-        <Link href="/blog" className="inline-flex items-center justify-center px-6 py-3 border-2 border-gray-200 hover:border-gray-900 text-gray-600 hover:text-gray-900 rounded-full font-medium transition-colors">
-          ← กลับไปหน้าบทความ
-        </Link>
-      </div>
+        {/* Article Content */}
+        <div
+          className="
+            prose
+            prose-lg
+            max-w-none
+            prose-headings:font-bold
+            prose-headings:text-gray-900
+            prose-p:text-gray-700
+            prose-p:leading-8
+            prose-a:text-blue-600
+            prose-a:no-underline
+            hover:prose-a:underline
+            prose-img:mx-auto
+            prose-img:rounded-xl
+            prose-strong:text-gray-900
+            prose-li:text-gray-700
+          "
+          dangerouslySetInnerHTML={{
+            __html: safeContent,
+          }}
+        />
 
-    </article>
+        {/* Bottom */}
+        <div className="mt-12 border-t border-gray-200 pt-8">
+          <Link
+            href="/blog"
+            className="inline-flex rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-700"
+          >
+            ← ดูบทความทั้งหมด
+          </Link>
+        </div>
+
+      </article>
+    </main>
   );
 }

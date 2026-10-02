@@ -1,178 +1,499 @@
 import Link from "next/link";
-import { connectDB } from "@/lib/mongodb";
-import { Post } from "@/models/Post";
-import { Product } from "@/models/Product";
-import { Thread } from "@/models/Thread";
-import TypewriterEffect from "@/components/TypewriterEffect";
 
-export const dynamic = "force-dynamic";
+const features = [
+  {
+    icon: "💻",
+    title: "Web Development",
+    description:
+      "เรียนรู้การพัฒนาเว็บไซต์ และเทคโนโลยีสมัยใหม่",
+    color: "bg-blue-50",
+  },
+  {
+    icon: "🚀",
+    title: "Technology",
+    description:
+      "ติดตามความรู้และประสบการณ์ด้านเทคโนโลยีและ IT",
+    color: "bg-purple-50",
+  },
+  {
+    icon: "👥",
+    title: "Community",
+    description:
+      "แลกเปลี่ยนความรู้และพูดคุยกับคนที่สนใจด้าน IT",
+    color: "bg-green-50",
+  },
+];
 
-export default async function HomePage() {
-  await connectDB();
+const stats = [
+  {
+    value: "100+",
+    label: "บทความ",
+  },
+  {
+    value: "50+",
+    label: "หัวข้อความรู้",
+  },
+  {
+    value: "24/7",
+    label: "เปิดให้เข้าชม",
+  },
+  {
+    value: "IT",
+    label: "เนื้อหาหลัก",
+  },
+];
 
-  const latestPosts = await Post.find({ status: "PUBLISHED" })
-    .populate("category", "name")
-    .sort({ createdAt: -1 })
-    .limit(3)
-    .lean();
+const articles = [
+  {
+    category: "Web Development",
+    title: "เริ่มต้นพัฒนาเว็บไซต์ด้วย Next.js",
+    description:
+      "ทำความรู้จักกับแนวคิดพื้นฐานของ Next.js และการสร้างเว็บไซต์สมัยใหม่",
+    href: "/blog",
+  },
+  {
+    category: "Programming",
+    title: "พื้นฐานการเขียนโปรแกรม",
+    description:
+      "เรียนรู้แนวคิดสำคัญสำหรับผู้เริ่มต้นเขียนโปรแกรม",
+    href: "/blog",
+  },
+  {
+    category: "Technology",
+    title: "เทคโนโลยีที่น่าสนใจ",
+    description:
+      "รวบรวมเรื่องราวและประสบการณ์เกี่ยวกับเทคโนโลยี",
+    href: "/blog",
+  },
+];
 
-  const latestProducts = await Product.find({ isActive: true })
-    .sort({ createdAt: -1 })
-    .limit(3)
-    .lean();
-
-  const latestThreads = await Thread.find()
-    .populate("author", "name")
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .lean();
-
-  // ชุดสโลแกนใหม่สุดเท่ของคุณ (พิมพ์วนลูป)
-  const slogans = [
-    "ทุกอย่างครบจบในที่เดียว",
-    "สติมาโปรแกรมเกิด สติเตลิด Error กระจาย",
-    "Read. Shop. Connect. (จบในที่เดียว)",
-    "Tech, Lifestyle, และ สินค้าพรีเมียม.",
-    "Connecting Ideas, Empowering Community."
-  ];
-
+export default function HomePage() {
   return (
-    <div className="space-y-24 pb-24">
-      {/* 🚀 Hero Section */}
-      <section className="relative pt-24 pb-32 overflow-hidden flex flex-col items-center text-center px-4">
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-50 to-white -z-10" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl -z-10" />
-        
-        {/* เปลี่ยนป้ายเป็น MickeyHub */}
-        <span className="px-4 py-1.5 rounded-full bg-zinc-100 text-zinc-600 text-xs font-bold uppercase tracking-widest mb-6 border border-zinc-200 shadow-sm">
-          Welcome to MickeyHub
-        </span>
-        
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-zinc-900 tracking-tight leading-tight max-w-5xl mb-6 min-h-[120px] md:min-h-[160px] flex items-center justify-center">
-          <TypewriterEffect words={slogans} />
-        </h1>
-        
-        <p className="text-lg text-zinc-500 max-w-2xl mb-10 leading-relaxed font-medium">
-          สัมผัสประสบการณ์ใหม่ในการอ่านบทความ ช้อปปิ้งสินค้าพรีเมียม และร่วมพูดคุยในคอมมูนิตี้ ครบจบในแอปเดียว
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link href="/shop" className="bg-zinc-950 hover:bg-zinc-800 text-white font-medium px-8 py-4 rounded-2xl transition shadow-lg shadow-zinc-900/20 active:scale-[0.98]">
-            เริ่มช้อปปิ้งเลย
-          </Link>
-          <Link href="/board" className="bg-white border border-zinc-200 text-zinc-900 hover:border-zinc-900 font-medium px-8 py-4 rounded-2xl transition active:scale-[0.98] shadow-sm">
-            เข้าร่วมคอมมูนิตี้
-          </Link>
+    <section className="flex-1">
+
+      {/* =====================================================
+          HERO
+      ====================================================== */}
+
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+
+        <div
+          className="
+            relative
+            overflow-hidden
+            rounded-3xl
+            border
+            border-gray-100
+            bg-white
+            p-8
+            shadow-sm
+            sm:p-12
+            lg:p-16
+          "
+        >
+          {/* Background decoration */}
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -right-24
+              -top-24
+              h-64
+              w-64
+              rounded-full
+              bg-blue-100/50
+              blur-3xl
+            "
+          />
+
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -bottom-32
+              right-20
+              h-72
+              w-72
+              rounded-full
+              bg-purple-100/40
+              blur-3xl
+            "
+          />
+
+          <div className="relative max-w-3xl">
+
+            <span
+              className="
+                inline-flex
+                items-center
+                rounded-full
+                bg-blue-50
+                px-3
+                py-1.5
+                text-sm
+                font-semibold
+                text-blue-600
+              "
+            >
+              👋 Welcome to Mickey Hub
+            </span>
+
+            <h1
+              className="
+                mt-5
+                text-4xl
+                font-black
+                tracking-tight
+                text-gray-900
+                sm:text-5xl
+                lg:text-6xl
+                lg:leading-[1.1]
+              "
+            >
+              แบ่งปันความรู้
+              <br />
+              <span className="text-blue-600">
+                ด้าน IT และเทคโนโลยี
+              </span>
+            </h1>
+
+            <p
+              className="
+                mt-6
+                max-w-2xl
+                text-base
+                leading-8
+                text-gray-500
+                sm:text-lg
+              "
+            >
+              แหล่งรวมบทความ ความรู้ ประสบการณ์
+              และเรื่องราวเกี่ยวกับการพัฒนาเว็บไซต์
+              เทคโนโลยี และการเขียนโปรแกรม
+            </p>
+
+            {/* Actions */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+
+              <Link
+                href="/blog"
+                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-gray-900
+                  px-6
+                  py-3
+                  text-sm
+                  font-semibold
+                  text-white
+                  shadow-sm
+                  transition-all
+                  duration-200
+                  hover:-translate-y-0.5
+                  hover:bg-gray-800
+                  hover:shadow-md
+                  active:scale-[0.98]
+                "
+              >
+                อ่านบทความ
+                <span className="ml-2">→</span>
+              </Link>
+
+              <Link
+                href="/team"
+                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-gray-200
+                  bg-white
+                  px-6
+                  py-3
+                  text-sm
+                  font-semibold
+                  text-gray-700
+                  transition-all
+                  duration-200
+                  hover:-translate-y-0.5
+                  hover:bg-gray-50
+                  hover:border-gray-300
+                  active:scale-[0.98]
+                "
+              >
+                รู้จักทีมงาน
+              </Link>
+
+            </div>
+
+          </div>
         </div>
-      </section>
 
-      <div className="max-w-7xl mx-auto px-4 space-y-32">
-        {/* 🛍️ Section 1: Latest Products */}
-        <section>
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight">สินค้ามาใหม่</h2>
-              <p className="text-zinc-500 mt-2">ไอเทมพรีเมียมล่าสุดจากร้านค้าของเรา</p>
+        {/* =====================================================
+            STATS
+        ====================================================== */}
+
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="
+                rounded-2xl
+                border
+                border-gray-100
+                bg-white
+                p-5
+                text-center
+                shadow-sm
+                transition-all
+                duration-200
+                hover:-translate-y-1
+                hover:shadow-md
+              "
+            >
+              <p className="text-2xl font-black text-gray-900">
+                {stat.value}
+              </p>
+
+              <p className="mt-1 text-sm text-gray-500">
+                {stat.label}
+              </p>
             </div>
-            <Link href="/shop" className="text-sm font-bold text-zinc-900 hover:text-blue-600 transition flex items-center gap-1">
-              ดูทั้งหมด <span>→</span>
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {latestProducts.map((product: any) => (
-              <Link href="/shop" key={product._id.toString()} className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 border border-zinc-100">
-                <div className="aspect-[4/5] bg-zinc-50 relative overflow-hidden flex items-center justify-center">
-                  {product.images?.[0] ? (
-                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
-                  ) : (
-                    <span className="text-zinc-400 font-medium">ไม่มีรูปภาพ</span>
-                  )}
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-zinc-900 mb-2">{product.name}</h3>
-                  <p className="text-2xl font-black text-zinc-900">฿{product.price.toLocaleString()}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+          ))}
 
-        {/* 📝 Section 2: Latest Blog Posts */}
-        <section>
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight">บทความล่าสุด</h2>
-              <p className="text-zinc-500 mt-2">อัปเดตเรื่องราวและความรู้ใหม่ๆ</p>
-            </div>
-            <Link href="/blog" className="text-sm font-bold text-zinc-900 hover:text-blue-600 transition flex items-center gap-1">
-              อ่านทั้งหมด <span>→</span>
-            </Link>
+        </div>
+
+        {/* =====================================================
+            FEATURES
+        ====================================================== */}
+
+        <div className="mt-16">
+
+          <div className="max-w-2xl">
+            <span className="text-sm font-bold uppercase tracking-wider text-blue-600">
+              Explore
+            </span>
+
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-gray-900">
+              เรียนรู้ไปด้วยกัน
+            </h2>
+
+            <p className="mt-3 text-gray-500">
+              สำรวจเนื้อหาและพื้นที่ต่าง ๆ ของ Mickey Hub
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {latestPosts.map((post: any) => (
-              <Link href={`/blog/${post.slug}`} key={post._id.toString()} className="group">
-                <div className="aspect-video w-full rounded-3xl mb-4 overflow-hidden border border-zinc-100 shadow-sm bg-zinc-50">
-                  {post.coverImage && (
-                    <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
-                  )}
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className="
+                  group
+                  rounded-2xl
+                  border
+                  border-gray-100
+                  bg-white
+                  p-6
+                  shadow-sm
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:shadow-lg
+                "
+              >
+                <div
+                  className={`
+                    flex
+                    h-12
+                    w-12
+                    items-center
+                    justify-center
+                    rounded-xl
+                    text-xl
+                    ${feature.color}
+                    transition-transform
+                    duration-300
+                    group-hover:scale-110
+                  `}
+                >
+                  {feature.icon}
                 </div>
-                {post.category && (
-                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 block">
-                    {post.category.name}
-                  </span>
-                )}
-                <h3 className="text-xl font-bold text-zinc-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                  {post.title}
+
+                <h3 className="mt-5 font-bold text-gray-900">
+                  {feature.title}
                 </h3>
-                <p className="text-zinc-500 text-sm line-clamp-2">{post.excerpt}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
 
-        {/* 💬 Section 3: Active Threads */}
-        <section>
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                <p className="mt-2 text-sm leading-6 text-gray-500">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+
+          </div>
+        </div>
+
+        {/* =====================================================
+            ARTICLES
+        ====================================================== */}
+
+        <div className="mt-20">
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
             <div>
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight">คอมมูนิตี้</h2>
-              <p className="text-zinc-500 mt-2">กระทู้พูดคุยล่าสุดจากสมาชิก</p>
+              <span className="text-sm font-bold uppercase tracking-wider text-blue-600">
+                Blog
+              </span>
+
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-gray-900">
+                บทความน่าสนใจ
+              </h2>
+
+              <p className="mt-3 text-gray-500">
+                เรื่องราวและความรู้ที่น่าสนใจจาก Mickey Hub
+              </p>
             </div>
-            <Link href="/board/new" className="bg-zinc-900 hover:bg-zinc-800 text-white font-medium px-5 py-2.5 rounded-xl transition text-sm shadow-sm">
-              + ตั้งกระทู้ใหม่
+
+            <Link
+              href="/blog"
+              className="
+                text-sm
+                font-semibold
+                text-blue-600
+                transition-colors
+                hover:text-blue-700
+              "
+            >
+              ดูบทความทั้งหมด →
             </Link>
+
           </div>
 
-          <div className="bg-white border border-zinc-100 rounded-3xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] divide-y divide-zinc-100">
-            {latestThreads.map((thread: any) => (
-              <Link href={`/board/${thread._id}`} key={thread._id.toString()} className="block p-6 hover:bg-zinc-50/50 transition-colors group">
-                <div className="flex justify-between items-center gap-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-zinc-900 group-hover:text-blue-600 transition-colors mb-1 line-clamp-1">
-                      {thread.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-zinc-500">
-                      <span className="font-semibold">{thread.author?.name || "สมาชิก"}</span>
-                      <span>•</span>
-                      <span>{new Date(thread.createdAt).toLocaleDateString('th-TH')}</span>
-                    </div>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-4 text-xs font-bold text-zinc-400">
-                    <span className="flex items-center gap-1">👁️ {thread.views || 0}</span>
-                    <span className="flex items-center gap-1">💬 {thread.repliesCount || 0}</span>
-                  </div>
-                </div>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+
+            {articles.map((article) => (
+              <Link
+                key={article.title}
+                href={article.href}
+                className="
+                  group
+                  rounded-2xl
+                  border
+                  border-gray-100
+                  bg-white
+                  p-6
+                  shadow-sm
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:shadow-lg
+                "
+              >
+                <span className="text-xs font-bold text-blue-600">
+                  {article.category}
+                </span>
+
+                <h3
+                  className="
+                    mt-3
+                    text-lg
+                    font-bold
+                    text-gray-900
+                    transition-colors
+                    group-hover:text-blue-600
+                  "
+                >
+                  {article.title}
+                </h3>
+
+                <p className="mt-3 text-sm leading-6 text-gray-500">
+                  {article.description}
+                </p>
+
+                <span className="mt-5 inline-block text-sm font-semibold text-gray-700">
+                  อ่านเพิ่มเติม →
+                </span>
               </Link>
             ))}
+
           </div>
-          <div className="mt-6 text-center">
-            <Link href="/board" className="text-sm font-bold text-zinc-900 hover:text-blue-600 transition inline-flex items-center gap-1">
-              ดูกระทู้ทั้งหมด <span>→</span>
-            </Link>
+        </div>
+
+        {/* =====================================================
+            COMMUNITY CTA
+        ====================================================== */}
+
+        <div className="mt-20">
+
+          <div
+            className="
+              overflow-hidden
+              rounded-3xl
+              bg-gray-900
+              p-8
+              text-white
+              sm:p-10
+              lg:p-12
+            "
+          >
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
+              <div className="max-w-2xl">
+
+                <span className="text-sm font-bold uppercase tracking-wider text-blue-300">
+                  Community
+                </span>
+
+                <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                  มีคำถามหรืออยากพูดคุย?
+                </h2>
+
+                <p className="mt-4 leading-7 text-gray-300">
+                  เข้ามาพูดคุย แลกเปลี่ยนความคิดเห็น
+                  และแบ่งปันประสบการณ์กับ Community
+                  ของ Mickey Hub
+                </p>
+
+              </div>
+
+              <Link
+                href="/board"
+                className="
+                  inline-flex
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-white
+                  px-6
+                  py-3
+                  text-sm
+                  font-bold
+                  text-gray-900
+                  transition-all
+                  duration-200
+                  hover:-translate-y-0.5
+                  hover:bg-gray-100
+                  active:scale-[0.98]
+                "
+              >
+                เข้าสู่เว็บบอร์ด
+                <span className="ml-2">→</span>
+              </Link>
+
+            </div>
           </div>
-        </section>
+
+        </div>
+
       </div>
-    </div>
+    </section>
   );
 }
