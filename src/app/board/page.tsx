@@ -1,81 +1,169 @@
 import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify";
+
 import { connectDB } from "@/lib/mongodb";
 import { Thread } from "@/models/Thread";
 
 export const dynamic = "force-dynamic";
 
+interface ThreadAuthor {
+  name?: string;
+}
+
+interface ThreadData {
+  _id: {
+    toString(): string;
+  };
+  title: string;
+  content?: string;
+  author?: ThreadAuthor | null;
+  createdAt: Date | string;
+  views?: number;
+  repliesCount?: number;
+}
+
 export default async function BoardPage() {
   await connectDB();
-  const threads = await Thread.find().populate("author", "name").sort({ createdAt: -1 }).lean();
+
+  const threads = (await Thread.find()
+    .populate("author", "name")
+    .sort({ createdAt: -1 })
+    .lean()) as unknown as ThreadData[];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 md:py-16">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Community Board</h1>
-          <p className="text-gray-500 mt-2">พื้นที่พูดคุย แลกเปลี่ยนความรู้ และถาม-ตอบ (สไตล์พันทิป)</p>
-        </div>
-        <Link 
-          href="/board/new" 
-          className="bg-zinc-950 hover:bg-zinc-800 text-white font-medium px-6 py-3 rounded-xl transition shadow-lg shadow-zinc-900/20 active:scale-[0.98]"
-        >
-          + ตั้งกระทู้ใหม่
-        </Link>
-      </div>
+    <main className="min-h-screen bg-gray-50">
+      <div className="mx-auto w-full max-w-6xl px-4 py-10 md:py-14">
 
-      <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-        {/* หัวตาราง (ซ่อนในมือถือ) */}
-        <div className="hidden md:grid grid-cols-12 gap-4 p-5 bg-gray-50/80 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-          <div className="col-span-8">หัวข้อกระทู้</div>
-          <div className="col-span-2 text-center">ผู้ตั้งกระทู้</div>
-          <div className="col-span-2 text-center">อ่าน / ตอบ</div>
+        {/* Header */}
+        <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-blue-600">
+              Community Board
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-zinc-900 md:text-4xl">
+              เว็บบอร์ด
+            </h1>
+
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500 md:text-base">
+              พูดคุย แบ่งปันความรู้ ตั้งคำถาม และแลกเปลี่ยนประสบการณ์กับสมาชิก
+              MickeyHub
+            </p>
+          </div>
+
+          <Link
+            href="/board/new"
+            className="inline-flex w-fit items-center justify-center rounded-xl bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+          >
+            + ตั้งกระทู้ใหม่
+          </Link>
         </div>
 
-        {/* รายการกระทู้ */}
-        <div className="divide-y divide-gray-100">
-          {threads.length === 0 ? (
-            <div className="p-16 text-center text-gray-400 font-medium">ยังไม่มีกระทู้ เริ่มตั้งกระทู้แรกกันเลย!</div>
-          ) : (
-            threads.map((thread: any) => (
-              <Link 
-                href={`/board/${thread._id}`} 
-                key={thread._id.toString()}
-                className="block p-5 hover:bg-gray-50/50 transition-colors group"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <div className="col-span-1 md:col-span-8">
-                    <h2 className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+        {/* Thread List */}
+        {threads.length > 0 ? (
+          <section className="space-y-4">
+            {threads.map((thread) => {
+              const rawContent = thread.content || "";
+
+              const safeContent = DOMPurify.sanitize(rawContent, {
+                ALLOWED_TAGS: [],
+                ALLOWED_ATTR: [],
+              });
+
+              const preview =
+                safeContent
+                  .replace(/\s+/g, " ")
+                  .trim()
+                  .slice(0, 180) ||
+                "ยังไม่มีรายละเอียดของกระทู้นี้";
+
+              return (
+                <article
+                  key={thread._id.toString()}
+                  className="rounded-3xl border border-zinc-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] md:p-7"
+                >
+                  <Link
+                    href={`/board/${thread._id.toString()}`}
+                    className="block"
+                  >
+                    {/* Thread Title */}
+                    <h2 className="text-xl font-black leading-tight text-zinc-900 transition hover:text-blue-600 md:text-2xl">
                       {thread.title}
                     </h2>
-                    <div className="flex items-center gap-2 mt-1.5 md:hidden">
-                      <span className="text-xs text-gray-500">{thread.author?.name || "สมาชิก"}</span>
-                      <span className="text-gray-300">•</span>
-                      <span className="text-xs text-gray-400">{new Date(thread.createdAt).toLocaleDateString('th-TH')}</span>
+
+                    {/* Content Preview */}
+                    <p className="mt-3 line-clamp-3 text-sm leading-7 text-zinc-600 md:text-base">
+                      {preview}
+                      {safeContent.length > 180 ? "..." : ""}
+                    </p>
+
+                    {/* Thread Metadata */}
+                    <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-zinc-500">
+                      <span className="font-semibold text-zinc-700">
+                        {thread.author?.name || "สมาชิกทั่วไป"}
+                      </span>
+
+                      <span>•</span>
+
+                      <span>
+                        {new Date(thread.createdAt).toLocaleDateString(
+                          "th-TH",
+                          {
+                            dateStyle: "medium",
+                          }
+                        )}
+                      </span>
+
+                      <span>•</span>
+
+                      <span>
+                        👁️ {thread.views || 0}
+                      </span>
+
+                      <span>•</span>
+
+                      <span>
+                        💬 {thread.repliesCount || 0}
+                      </span>
                     </div>
-                  </div>
-                  
-                  <div className="hidden md:block col-span-2 text-center">
-                    <span className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-xs font-semibold text-gray-600">
-                      {thread.author?.name || "สมาชิก"}
-                    </span>
-                  </div>
-                  
-                  <div className="hidden md:flex col-span-2 justify-center items-center gap-4 text-xs font-medium text-gray-400">
-                    <div className="flex flex-col items-center">
-                      <span className="text-gray-900 font-bold">{thread.views || 0}</span>
-                      <span className="text-[10px] uppercase tracking-wider">Views</span>
+
+                    {/* Read More */}
+                    <div className="mt-5">
+                      <span className="inline-flex items-center text-sm font-bold text-blue-600">
+                        อ่านกระทู้ →
+                      </span>
                     </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-gray-900 font-bold">{thread.repliesCount || 0}</span>
-                      <span className="text-[10px] uppercase tracking-wider">Replies</span>
-                    </div>
-                  </div>
-                </div>
+                  </Link>
+                </article>
+              );
+            })}
+          </section>
+        ) : (
+          /* Empty State */
+          <section className="rounded-3xl border border-dashed border-zinc-200 bg-white px-6 py-16 text-center">
+            <div className="mx-auto max-w-md">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 text-2xl">
+                💬
+              </div>
+
+              <h2 className="mt-5 text-xl font-black text-zinc-900">
+                ยังไม่มีกระทู้
+              </h2>
+
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                เป็นคนแรกที่เริ่มพูดคุยหรือแบ่งปันความรู้กับสมาชิกใน Community
+              </p>
+
+              <Link
+                href="/board/new"
+                className="mt-6 inline-flex items-center justify-center rounded-xl bg-zinc-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+              >
+                ตั้งกระทู้แรก
               </Link>
-            ))
-          )}
-        </div>
+            </div>
+          </section>
+        )}
       </div>
-    </div>
+    </main>
   );
 }

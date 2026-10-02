@@ -7,18 +7,56 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function DELETE(req: Request, { params }: RouteParams) {
+interface SessionUser {
+  role?: string;
+}
+
+export async function DELETE(
+  _req: Request,
+  { params }: RouteParams
+) {
   const session = await auth();
-  if ((session?.user as any)?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = session?.user as SessionUser | undefined;
+
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
   }
 
   try {
     const { id } = await params;
+
     await connectDB();
-    await Category.findByIdAndDelete(id);
-    return NextResponse.json({ message: "ลบหมวดหมู่สำเร็จ" });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    const deletedCategory = await Category.findByIdAndDelete(id);
+
+    if (!deletedCategory) {
+      return NextResponse.json(
+        { error: "ไม่พบหมวดหมู่ที่ต้องการลบ" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      message: "ลบหมวดหมู่สำเร็จ",
+    });
+  } catch (error: unknown) {
+    console.error(
+      "DELETE /api/categories/[id] error:",
+      error
+    );
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "เกิดข้อผิดพลาดในการลบหมวดหมู่";
+
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    );
   }
 }
