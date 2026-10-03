@@ -22,7 +22,11 @@ const PostSchema = new Schema<IPost>(
     coverImage: String,
     status: { type: String, enum: ["DRAFT", "PUBLISHED", "ARCHIVED"], default: "DRAFT" },
     author: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    category: { type: Schema.Types.ObjectId, ref: "Category" },
+    category: { 
+      type: Schema.Types.ObjectId, 
+      ref: "Category",
+      set: (v: any) => (v === "" ? undefined : v) 
+    },
     readingTime: { type: Number, default: 1 },
   },
   { timestamps: true }

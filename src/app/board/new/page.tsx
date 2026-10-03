@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -17,16 +17,17 @@ export default function NewThreadPage() {
   const [room, setRoom] = useState("พูดคุยทั่วไป"); 
   const [isLoading, setIsLoading] = useState(false);
 
-  // ถ้ายังโหลดข้อมูล Session ไม่เสร็จ ให้โชว์หน้าว่างๆ ไปก่อน
-  if (status === "loading") {
-    return <div className="min-h-screen flex items-center justify-center bg-zinc-50">กำลังโหลด...</div>;
-  }
+  // ⭐ ย้ายการตรวจสอบสถานะ Login มาไว้ใน useEffect (แก้ปัญหา Next.js Error)
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      toast.error("กรุณาเข้าสู่ระบบก่อนตั้งกระทู้ครับ", { id: "login-required" });
+      router.push("/login");
+    }
+  }, [status, router]);
 
-  // ถ้าไม่ได้ล็อกอิน ให้เตะกลับไปหน้า Login
-  if (status === "unauthenticated") {
-    toast.error("กรุณาเข้าสู่ระบบก่อนตั้งกระทู้ครับ", { id: "login-required" });
-    router.push("/login");
-    return null;
+  // ⭐ แก้ปัญหา Hydration Error (หน้าเว็บโหลดไม่ตรงกัน)
+  if (status === "loading" || status === "unauthenticated") {
+    return <div className="min-h-screen flex items-center justify-center bg-zinc-50">กำลังตรวจสอบสิทธิ์...</div>;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ export default function NewThreadPage() {
       const res = await fetch("/api/threads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // ⭐ หัวใจสำคัญ: ส่ง room พ่วงไปด้วย! ⭐
+        // ส่ง room พ่วงไปด้วย
         body: JSON.stringify({ title, content, room }),
       });
 
@@ -48,7 +49,7 @@ export default function NewThreadPage() {
       }
 
       toast.success("ตั้งกระทู้สำเร็จ!");
-      router.push("/board"); // กลับไปหน้าเว็บบอร์ดรวม (เดี๋ยวเราจะสร้างหน้านี้กัน)
+      router.push("/board"); // กลับไปหน้าเว็บบอร์ดรวม
       router.refresh();
       
     } catch (error: any) {

@@ -3,16 +3,19 @@
 import { useCartStore } from "@/store/CartStore";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation"; // ⭐ 1. นำเข้า useRouter
 
 export default function CartPage() {
   const { items, removeItem, clearCart } = useCartStore();
+  const router = useRouter(); // ⭐ 2. เรียกใช้งาน router
 
   const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const handleCheckout = () => {
     if (items.length === 0) return toast.error("ไม่มีสินค้าในตะกร้า");
-    toast.success("กำลังพาท่านไปหน้าชำระเงิน...");
-    // TODO: ส่งข้อมูลไปสร้าง Order ใน Database และไปยังหน้าโอนเงิน
+    
+    // ⭐ 3. สั่งให้เปลี่ยนหน้าไปที่ /checkout ทันทีที่กดปุ่ม
+    router.push("/checkout"); 
   };
 
   if (items.length === 0) {
