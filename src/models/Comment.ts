@@ -1,16 +1,17 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 export interface IComment extends Document {
-  thread: Types.ObjectId;
-  author: Types.ObjectId;
   content: string;
+  threadId: Types.ObjectId;
+  author: Types.ObjectId;
+  createdAt: Date;
 }
 
 const CommentSchema = new Schema<IComment>(
   {
-    thread: { type: Schema.Types.ObjectId, ref: "Thread", required: true },
-    author: { type: Schema.Types.ObjectId, ref: "User", required: true },
     content: { type: String, required: true },
+    threadId: { type: Schema.Types.ObjectId, ref: "Thread", required: true },
+    author: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );

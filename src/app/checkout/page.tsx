@@ -1,123 +1,182 @@
 "use client";
 
 import { useState } from "react";
-import { useCartStore } from "@/store/CartStore";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 import Link from "next/link";
+import { useCartStore } from "@/store/CartStore"; // ดึง Store มาใช้เพื่อล้างตะกร้า
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, clearCart } = useCartStore();
+  const { clearCart } = useCartStore(); // เรียกใช้ฟังก์ชันล้างตะกร้า
+  
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // State สำหรับเก็บข้อมูลฟอร์ม
+  const [formData, setFormData] = useState({
+    name: "",
+    cardNumber: "",
+    expiry: "",
+    cvc: "",
+  });
 
-  // ถ้าแอบเข้าหน้านี้โดยที่ตะกร้าว่างเปล่า ให้เด้งกลับไปหน้าร้านค้า
-  if (items.length === 0) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-32 text-center">
-        <h1 className="text-2xl font-bold text-zinc-900 mb-4">ไม่มีสินค้าให้ชำระเงิน</h1>
-        <Link href="/shop" className="text-blue-600 font-medium hover:underline">
-          กลับไปเลือกซื้อสินค้า
-        </Link>
-      </div>
-    );
-  }
+  // ⭐ ฟังก์ชันจัดการการพิมพ์ และบล็อกตัวอักษร
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
 
-  const handleConfirmOrder = async () => {
-    setIsProcessing(true);
-    const toastId = toast.loading("กำลังสร้างคำสั่งซื้อ...");
+    // ถ้าเป็นช่อง "ชื่อบนบัตร" อนุญาตให้พิมพ์อะไรก็ได้ตามปกติ
+    if (name === "name") {
+      setFormData({ ...formData, [name]: value });
+      return;
+    }
 
-    try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, totalAmount: totalPrice }),
-      });
+    // สำหรับช่องอื่นๆ ให้ลบทุกอย่างที่ไม่ใช่ตัวเลข (0-9) ออกทิ้งให้หมด!
+    let rawValue = value.replace(/\D/g, "");
 
-      const data: any = await res.json();
-
-      if (res.ok) {
-        toast.success("สั่งซื้อสำเร็จ!", { id: toastId });
-        clearCart(); // ล้างตะกร้าทันทีที่สั่งซื้อเสร็จ
-        router.push(`/checkout/success?orderId=${data.orderId}`);
-      } else {
-        // กรณี Error (เช่น ยังไม่ล็อกอิน)
-        toast.error(data.error || "เกิดข้อผิดพลาดในการสั่งซื้อ", { id: toastId });
-        if (res.status === 401) {
-          router.push("/api/auth/signin"); // เด้งไปหน้าล็อกอิน
-        }
+    if (name === "cardNumber") {
+      // จัดรูปแบบเลขบัตร: ให้เว้นวรรคทุกๆ 4 ตัว (เช่น 1234 5678 1234 5678)
+      rawValue = rawValue.replace(/(\d{4})/g, "$1 ").trim();
+      setFormData({ ...formData, [name]: rawValue });
+    } 
+    else if (name === "expiry") {
+      // จัดรูปแบบวันหมดอายุ: ใส่ / คั่นกลางอัตโนมัติ (เช่น 12/25)
+      if (rawValue.length >= 3) {
+        rawValue = `${rawValue.slice(0, 2)}/${rawValue.slice(2, 4)}`;
       }
-    } catch {
-      toast.error("ระบบขัดข้อง กรุณาลองใหม่", { id: toastId });
-    } finally {
-      setIsProcessing(false);
+      setFormData({ ...formData, [name]: rawValue });
+    } 
+    else if (name === "cvc") {
+      // CVC ปล่อยเป็นตัวเลขล้วน
+      setFormData({ ...formData, [name]: rawValue });
     }
   };
 
+  const handlePayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+
+    // จำลองระยะเวลาโหลดตัดบัตร 2 วินาที
+    setTimeout(() => {
+      setIsProcessing(false);
+      setIsSuccess(true);
+
+      // ⭐ ล้างตะกร้าสินค้าผ่าน Zustand Store
+      clearCart();
+
+      // พากลับหน้าแรกหลังจากโชว์หน้าสำเร็จ 3 วินาที
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 3000);
+    }, 2000);
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-16">
-      <h1 className="text-3xl font-black text-zinc-900 tracking-tight mb-8">ชำระเงิน (Checkout)</h1>
+    <div className="min-h-screen bg-zinc-50 py-12 px-4 flex justify-center items-center">
+      <div className="w-full max-w-lg">
+        
+        {/* ปุ่มกลับ */}
+        {!isSuccess && !isProcessing && (
+          <Link href="/cart" className="text-zinc-500 hover:text-zinc-900 text-sm mb-6 inline-flex items-center gap-2 transition">
+            <span>←</span> กลับไปหน้าตะกร้าสินค้า
+          </Link>
+        )}
 
-      <div className="flex flex-col md:flex-row gap-10">
-        {/* คอลัมน์ซ้าย: ข้อมูลการชำระเงิน */}
-        <div className="flex-grow space-y-6">
-          <div className="bg-white border border-zinc-100 rounded-3xl p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-zinc-900 mb-6 flex items-center gap-2">
-              <span>🏦</span> ช่องทางการโอนเงิน
-            </h2>
-            
-            <div className="flex flex-col sm:flex-row gap-8 items-center bg-zinc-50 p-6 rounded-2xl border border-zinc-200">
-              <div className="w-48 h-48 bg-white border-2 border-dashed border-zinc-300 rounded-2xl flex items-center justify-center text-zinc-400 text-sm">
-                [พื้นที่วาง QR Code]
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-[0_10px_40px_rgb(0,0,0,0.03)] border border-zinc-100">
+          
+          {isSuccess ? (
+            /* หน้าต่างแสดงผลเมื่อชำระเงินสำเร็จ */
+            <div className="text-center py-8 animate-fadeIn">
+              <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                </svg>
               </div>
-              <div className="space-y-3 flex-grow text-center sm:text-left">
-                <p className="font-semibold text-zinc-900">ธนาคารกสิกรไทย (KBANK)</p>
-                <p className="text-2xl font-black text-zinc-900 tracking-wider">123-4-56789-0</p>
-                <p className="text-zinc-500">ชื่อบัญชี: บจก. มิกกี้ ฮับ</p>
-                <div className="mt-4 pt-4 border-t border-zinc-200">
-                  <p className="text-sm text-amber-600 font-medium">⚠️ กรุณาโอนเงินยอดสุทธิ: ฿{totalPrice.toLocaleString()}</p>
-                </div>
+              <h2 className="text-2xl font-black text-zinc-900 mb-2">ชำระเงินสำเร็จ!</h2>
+              <p className="text-zinc-500 text-sm mb-6">ระบบได้รับยอดเงินของคุณเรียบร้อยแล้ว<br/>กำลังพาท่านกลับสู่หน้าหลัก...</p>
+            </div>
+          ) : (
+            /* ฟอร์มกรอกบัตรเครดิต */
+            <div className="animate-fadeIn">
+              <div className="mb-8">
+                <h1 className="text-2xl font-black text-zinc-900 mb-2">ชำระเงินด้วยบัตรเครดิต</h1>
+                <p className="text-zinc-500 text-sm">ยอดชำระสุทธิ: <span className="font-bold text-zinc-900 text-lg">฿200.00</span></p>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* คอลัมน์ขวา: สรุปคำสั่งซื้อ */}
-        <div className="w-full md:w-96 shrink-0">
-          <div className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sticky top-24">
-            <h2 className="font-bold text-lg border-b border-zinc-100 pb-4 mb-4">สรุปยอดสั่งซื้อ</h2>
-            
-            <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-              {items.map((item) => (
-                <div key={item._id} className="flex justify-between text-sm">
-                  <div className="text-zinc-600 pr-4">
-                    <span className="font-medium text-zinc-900">{item.quantity}x</span> {item.name}
-                  </div>
-                  <div className="font-medium text-zinc-900 whitespace-nowrap">
-                    ฿{(item.price * item.quantity).toLocaleString()}
+              <form onSubmit={handlePayment} className="space-y-5">
+                
+                {/* ชื่อบนบัตร */}
+                <div>
+                  <label className="block text-sm font-bold text-zinc-900 mb-2">ชื่อบนบัตร (Name on Card)</label>
+                  <input 
+                    type="text" name="name" required placeholder="JOHN DOE" 
+                    value={formData.name} onChange={handleInputChange} // เปลี่ยนมาใช้ handleInputChange
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all uppercase"
+                  />
+                </div>
+
+                {/* เลขหมายบัตร */}
+                <div>
+                  <label className="block text-sm font-bold text-zinc-900 mb-2">หมายเลขบัตร (Card Number)</label>
+                  <div className="relative">
+                    <input 
+                      type="text" name="cardNumber" required placeholder="0000 0000 0000 0000" maxLength={19}
+                      value={formData.cardNumber} onChange={handleInputChange} // เปลี่ยนมาใช้ handleInputChange
+                      className="w-full pl-12 pr-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all tracking-wider font-mono"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="flex justify-between text-xl font-black text-zinc-900 mb-8 pt-4 border-t border-zinc-100">
-              <span>ยอดรวมทั้งสิ้น</span>
-              <span className="text-blue-600">฿{totalPrice.toLocaleString()}</span>
-            </div>
 
-            <button 
-              onClick={handleConfirmOrder}
-              disabled={isProcessing}
-              className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-medium py-4 rounded-xl transition shadow-lg shadow-zinc-900/20 active:scale-[0.98] disabled:opacity-70"
-            >
-              {isProcessing ? "กำลังประมวลผล..." : "ยืนยันการโอนเงิน"}
-            </button>
-            <p className="text-xs text-zinc-400 text-center mt-4">
-              คลิกเพื่อยืนยันว่าคุณได้ทำการโอนเงินเรียบร้อยแล้ว
-            </p>
-          </div>
+                {/* วันหมดอายุ & CVC */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-zinc-900 mb-2">วันหมดอายุ (MM/YY)</label>
+                    <input 
+                      type="text" name="expiry" required placeholder="MM/YY" maxLength={5}
+                      value={formData.expiry} onChange={handleInputChange} // เปลี่ยนมาใช้ handleInputChange
+                      className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all text-center font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-zinc-900 mb-2">รหัสความปลอดภัย (CVC)</label>
+                    <input 
+                      type="text" name="cvc" required placeholder="123" maxLength={3}
+                      value={formData.cvc} onChange={handleInputChange} // เปลี่ยนมาใช้ handleInputChange
+                      className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all text-center font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <button 
+                    type="submit" disabled={isProcessing || formData.cardNumber.length < 19} // ป้องกันกดซับมิทถ้าพิมพ์เลขบัตรไม่ครบ
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-blue-600/20 flex justify-center items-center gap-2"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        กำลังประมวลผล...
+                      </>
+                    ) : (
+                      "ยืนยันการชำระเงิน ฿200.00"
+                    )}
+                  </button>
+                  <p className="text-center text-xs text-zinc-400 mt-4 flex items-center justify-center gap-1">
+                    <span>🔒</span> ข้อมูลของคุณได้รับการเข้ารหัสอย่างปลอดภัย
+                  </p>
+                </div>
+              </form>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

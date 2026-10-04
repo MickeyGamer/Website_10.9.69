@@ -1,106 +1,89 @@
-"use client";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { signIn } from "next-auth/react";
+export default async function AdminPage() {
+  const session = await auth();
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // เพิ่ม State สำหรับเก็บข้อความ Error
-  const [errorMsg, setErrorMsg] = useState("");
-  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrorMsg(""); // ล้างข้อความ Error เก่าออกก่อน
-
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (res?.error) {
-      // ถ้าเข้าสู่ระบบไม่ผ่าน ให้โชว์ข้อความสีแดง
-      setErrorMsg("อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
-      setIsLoading(false);
-    } else {
-      setIsSuccess(true);
-      setTimeout(() => {
-        router.push("/");
-        router.refresh();
-      }, 2000);
-    }
-  };
+  // เตะกลับไปหน้า Login ถ้ายังไม่เข้าระบบ
+  if (!session?.user) {
+    redirect("/login");
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-4 relative">
-      <Link href="/" className="absolute top-8 left-8 text-sm font-bold text-zinc-500 hover:text-zinc-900 transition flex items-center gap-2">
-        <span>←</span> กลับหน้าแรก MickeyHub
-      </Link>
-
-      <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgb(0,0,0,0.03)] border border-zinc-100 w-full max-w-md">
+    <div className="w-full">
+      <div className="max-w-5xl mx-auto">
         
-        {isSuccess ? (
-          <div className="text-center py-8 animate-fadeIn">
-            <svg className="checkmark mb-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-              <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-              <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-            </svg>
-            <h3 className="text-xl font-black text-zinc-900 mb-2">กำลังนำท่านเข้าสู่ระบบ...</h3>
-            <p className="text-zinc-500 text-sm">ยินดีต้อนรับกลับสู่ MickeyHub</p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-black text-zinc-900 mb-2">ภาพรวมระบบ</h1>
+          <p className="text-zinc-500">
+            ยินดีต้อนรับกลับมาครับ <span className="font-bold text-zinc-900">{session.user.name}</span>
+          </p>
+        </div>
+
+        {/* กล่องสถิติ 3 กล่อง */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm">
+            <h3 className="text-zinc-500 text-sm font-medium mb-2">จำนวนสมาชิกทั้งหมด</h3>
+            <p className="text-4xl font-black text-zinc-900">1,248</p>
           </div>
-        ) : (
-          <div className="animate-fadeIn">
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-black text-zinc-900 tracking-tight">เข้าสู่ระบบ MickeyHub</h1>
-              <p className="text-zinc-500 text-sm mt-2">จัดการบล็อกและบทความของคุณ</p>
+          <div className="bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm">
+            <h3 className="text-zinc-500 text-sm font-medium mb-2">กระทู้ในระบบ</h3>
+            <p className="text-4xl font-black text-zinc-900">342</p>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm">
+            <h3 className="text-zinc-500 text-sm font-medium mb-2">สถานะเซิร์ฟเวอร์</h3>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <p className="text-2xl font-black text-emerald-600">ปกติ (Online)</p>
             </div>
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              
-              {/* กล่องแสดง Error สีแดง (จะโชว์ก็ต่อเมื่อมี Error) */}
-              {errorMsg && (
-                <div className="bg-red-50 text-red-600 text-sm font-semibold p-4 rounded-2xl border border-red-100 text-center animate-fadeIn">
-                  ⚠️ {errorMsg}
-                </div>
-              )}
-
-              <div>
-                <input 
-                  type="email" required placeholder="อีเมลของคุณ" 
-                  value={email} onChange={(e: any) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-zinc-50/50 border border-zinc-200 rounded-2xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
-                />
-              </div>
-              <div>
-                <input 
-                  type="password" required placeholder="รหัสผ่าน" 
-                  value={password} onChange={(e: any) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-zinc-50/50 border border-zinc-200 rounded-2xl text-sm focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all"
-                />
-              </div>
-              
-              <button 
-                type="submit" disabled={isLoading}
-                className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-4 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-zinc-900/10 mt-2"
-              >
-                {isLoading ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบ"}
-              </button>
-            </form>
-
-            <p className="text-center text-sm text-zinc-500 mt-8">
-              ยังไม่มีบัญชีใช่ไหม? <Link href="/register" className="text-zinc-900 font-bold hover:underline">สมัครสมาชิก</Link>
-            </p>
           </div>
-        )}
+        </div>
+
+        {/* ตารางข้อมูลล่าสุด */}
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-zinc-100">
+            <h2 className="text-lg font-bold text-zinc-900">กิจกรรมล่าสุดในระบบ (จำลอง)</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-zinc-50/50">
+                  <th className="py-4 px-6 text-xs font-bold text-zinc-500 uppercase tracking-wider">วันเวลา</th>
+                  <th className="py-4 px-6 text-xs font-bold text-zinc-500 uppercase tracking-wider">ผู้ใช้งาน</th>
+                  <th className="py-4 px-6 text-xs font-bold text-zinc-500 uppercase tracking-wider">กิจกรรม</th>
+                  <th className="py-4 px-6 text-xs font-bold text-zinc-500 uppercase tracking-wider">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                <tr className="border-b border-zinc-50 hover:bg-zinc-50/50 transition">
+                  <td className="py-4 px-6 text-zinc-500">วันนี้, 10:30 น.</td>
+                  <td className="py-4 px-6 font-bold text-zinc-900">{session.user.name}</td>
+                  <td className="py-4 px-6 text-zinc-600">ตั้งกระทู้ใหม่ในหมวด "พูดคุยทั่วไป"</td>
+                  <td className="py-4 px-6">
+                    <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">สำเร็จ</span>
+                  </td>
+                </tr>
+                <tr className="border-b border-zinc-50 hover:bg-zinc-50/50 transition">
+                  <td className="py-4 px-6 text-zinc-500">วันนี้, 09:15 น.</td>
+                  <td className="py-4 px-6 font-bold text-zinc-900">Mickey gamer</td>
+                  <td className="py-4 px-6 text-zinc-600">เข้าสู่ระบบหลังบ้าน</td>
+                  <td className="py-4 px-6">
+                    <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">สำเร็จ</span>
+                  </td>
+                </tr>
+                <tr className="hover:bg-zinc-50/50 transition">
+                  <td className="py-4 px-6 text-zinc-500">เมื่อวาน, 22:00 น.</td>
+                  <td className="py-4 px-6 font-bold text-zinc-900">Unknown</td>
+                  <td className="py-4 px-6 text-zinc-600">พยายามเข้าสู่ระบบ (รหัสผ่านผิด)</td>
+                  <td className="py-4 px-6">
+                    <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">ล้มเหลว</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );
